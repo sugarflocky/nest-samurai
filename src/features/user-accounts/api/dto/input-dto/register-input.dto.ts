@@ -1,4 +1,3 @@
-import { CreateUserDto } from '../../../dto/create-user.dto';
 import {
   IsEmail,
   IsNotEmpty,
@@ -7,7 +6,7 @@ import {
   Matches,
 } from 'class-validator';
 
-export class CreateUserInputDto implements CreateUserDto {
+export class RegisterInputDto {
   @IsString()
   @IsNotEmpty()
   @Length(3, 10)

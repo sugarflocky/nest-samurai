@@ -4,8 +4,7 @@ import { ConfigModule } from '@nestjs/config';
 import * as process from 'node:process';
 import { UserAccountsModule } from './features/user-accounts/user-accounts.module';
 import { BloggersPlatformModule } from './features/bloggers-platform/bloggers-platform.module';
-import { TestingModule } from './modules/testing/testing-module';
-
+import { TestingModule } from './features/testing/testing-module';
 @Module({
   imports: [
     ConfigModule.forRoot(),

@@ -1,6 +1,11 @@
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument, UserModelType } from '../domain/user.entity';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 
 @Injectable()
 export class UsersRepository {
@@ -26,6 +31,51 @@ export class UsersRepository {
       throw new NotFoundException('user not found');
     }
 
+    return user;
+  }
+
+  async findByLoginOrEmail(loginOrEmail: string): Promise<UserDocument> {
+    const user = await this.UserModel.findOne({
+      $or: [
+        { login: loginOrEmail, deletedAt: null },
+        { email: loginOrEmail, deletedAt: null },
+      ],
+    });
+    if (!user) {
+      throw new UnauthorizedException('incorrect login or password');
+    }
+    return user;
+  }
+
+  async findOrBadRequestByCode(code: string): Promise<UserDocument> {
+    const user = await this.UserModel.findOne({
+      'emailConfirmation.code': code,
+      deletedAt: null,
+    });
+    if (!user)
+      throw new BadRequestException([
+        {
+          message:
+            'confirmation code is incorrect, expired or already been applied',
+          field: 'code',
+        },
+      ]);
+    return user;
+  }
+
+  async findByEmail(email: string): Promise<UserDocument | null> {
+    const user = await this.UserModel.findOne({
+      email: email,
+      deletedAt: null,
+    });
+    return user;
+  }
+
+  async findByLogin(login: string): Promise<UserDocument | null> {
+    const user = await this.UserModel.findOne({
+      login: login,
+      deletedAt: null,
+    });
     return user;
   }
 }

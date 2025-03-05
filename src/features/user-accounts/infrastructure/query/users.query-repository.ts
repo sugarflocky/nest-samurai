@@ -4,6 +4,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { UserViewDto } from '../../api/dto/view-dto/user-view.dto';
 import { PaginatedViewDto } from '../../../../core/dto/base.paginated.view-dto';
 import { GetUsersQueryParams } from '../../api/dto/input-dto/get-users-query-params.input-dto';
+import { MeViewDto } from '../../api/dto/view-dto/me-view.dto';
 
 @Injectable()
 export class UsersQueryRepository {
@@ -76,5 +77,18 @@ export class UsersQueryRepository {
     };
 
     return PaginatedViewDto.mapToView(data);
+  }
+
+  async getUserByAccessToken(id: string) {
+    const user = await this.UserModel.findOne({
+      _id: id,
+      deletedAt: null,
+    });
+
+    if (!user) {
+      throw new NotFoundException('user not found');
+    }
+
+    return MeViewDto.mapToView(user);
   }
 }

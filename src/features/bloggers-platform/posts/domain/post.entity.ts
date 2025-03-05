@@ -64,7 +64,6 @@ export class Post {
 
   static createInstance(dto: CreatePostDto): PostDocument {
     const post = new this();
-    console.log(post);
 
     post.title = dto.title;
     post.shortDescription = dto.shortDescription;

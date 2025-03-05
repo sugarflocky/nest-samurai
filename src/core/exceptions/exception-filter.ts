@@ -20,6 +20,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       };
 
       const responseBody: any = exception.getResponse();
+      console.log(responseBody);
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access
       responseBody.message.forEach((m) => {
         errorsMessages.errorsMessages.push(m);

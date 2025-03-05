@@ -1,17 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import {
-  User,
-  UserModelType,
-} from '../../features/user-accounts/domain/user.entity';
+import { User, UserModelType } from '../user-accounts/domain/user.entity';
 import {
   Blog,
   BlogModelType,
-} from '../../features/bloggers-platform/blogs/domain/blog.entity';
+} from '../bloggers-platform/blogs/domain/blog.entity';
 import {
   Post,
   PostModelType,
-} from '../../features/bloggers-platform/posts/domain/post.entity';
+} from '../bloggers-platform/posts/domain/post.entity';
 
 @Injectable()
 export class TestingService {

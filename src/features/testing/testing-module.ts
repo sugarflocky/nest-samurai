@@ -2,18 +2,15 @@ import { Module } from '@nestjs/common';
 import { TestingController } from './testing.controller';
 import { TestingService } from './testing.service';
 import { MongooseModule } from '@nestjs/mongoose';
-import {
-  User,
-  UserSchema,
-} from '../../features/user-accounts/domain/user.entity';
+import { User, UserSchema } from '../user-accounts/domain/user.entity';
 import {
   Blog,
   BlogSchema,
-} from '../../features/bloggers-platform/blogs/domain/blog.entity';
+} from '../bloggers-platform/blogs/domain/blog.entity';
 import {
   Post,
   PostSchema,
-} from '../../features/bloggers-platform/posts/domain/post.entity';
+} from '../bloggers-platform/posts/domain/post.entity';
 
 @Module({
   imports: [
