@@ -50,6 +50,7 @@ export class BlogQueryRepository {
 
   async getBlog(id: string): Promise<BlogViewModel | null> {
     try {
+      if (id.length !== 24) return null;
       const blog = await this.BlogModel.findById(id);
       if (!blog) return null;
       return blogMapper(blog);

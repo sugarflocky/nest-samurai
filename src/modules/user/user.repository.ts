@@ -20,6 +20,7 @@ export class UserRepository {
 
   async deleteUser(id: string): Promise<UserDocument | null> {
     try {
+      if (id.length !== 24) return null;
       const user = await this.UserModel.findByIdAndDelete(id);
       return user;
     } catch (error) {

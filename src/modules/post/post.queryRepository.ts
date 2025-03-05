@@ -50,6 +50,7 @@ export class PostQueryRepository {
       const { sortDirection, sortBy, pageSize, pageNumber } = sortData;
       const blog = await this.blogRepository.getBlog(blogId);
       if (!blog) return null;
+      if (blogId.length !== 24) return null;
 
       const posts = await this.PostModel.find({
         blogId: new Types.ObjectId(blogId),
@@ -79,6 +80,7 @@ export class PostQueryRepository {
 
   async getPost(id: string): Promise<PostViewModel | null> {
     try {
+      if (id.length !== 24) return null;
       const post = await this.PostModel.findById(id);
       if (!post) return null;
       return postMapper(post);

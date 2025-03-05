@@ -20,6 +20,7 @@ export class BlogRepository {
 
   async getBlog(id: string): Promise<BlogDocument | null> {
     try {
+      if (id.length !== 24) return null;
       const blog = await this.BlogModel.findById(id);
       return blog;
     } catch (error) {
@@ -33,6 +34,7 @@ export class BlogRepository {
     updateDto: BlogUpdateDto,
   ): Promise<BlogDocument | null> {
     try {
+      if (id.length !== 24) return null;
       const updatedBlog = await this.BlogModel.findByIdAndUpdate(id, updateDto);
       return updatedBlog;
     } catch (error) {
@@ -43,6 +45,7 @@ export class BlogRepository {
 
   async deleteBlog(id: string): Promise<BlogDocument | null> {
     try {
+      if (id.length !== 24) return null;
       const result = await this.BlogModel.findByIdAndDelete(id);
       return result;
     } catch (error) {

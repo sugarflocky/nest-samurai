@@ -8,8 +8,8 @@ export type UserCreateDto = {
 };
 
 export type UserViewModel = {
+  id: string;
   login: string;
-  password: string;
   email: string;
   createdAt: string;
 };
@@ -25,9 +25,9 @@ export type UserSortData = {
 
 export const userMapper = (user: UserDocument): UserViewModel => {
   return {
+    id: user._id.toString(),
     login: user.login,
-    password: user.password,
-    email: user.password,
+    email: user.email,
     createdAt: user.createdAt.toISOString(),
   };
 };

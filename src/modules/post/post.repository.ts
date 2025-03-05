@@ -22,6 +22,7 @@ export class PostRepository {
     updateDto: PostUpdateDto,
   ): Promise<PostDocument | null> {
     try {
+      if (id.length !== 24) return null;
       updateDto.blogId = new Types.ObjectId(updateDto.blogId);
       const updatedPost = await this.PostModel.findByIdAndUpdate(id, updateDto);
       return updatedPost;
@@ -33,6 +34,7 @@ export class PostRepository {
 
   async deletePost(id: string): Promise<PostDocument | null> {
     try {
+      if (id.length !== 24) return null;
       const result = await this.PostModel.findByIdAndDelete(id);
       return result;
     } catch (error) {
