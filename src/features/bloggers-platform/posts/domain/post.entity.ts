@@ -10,30 +10,12 @@ export enum LikeStatus {
 }
 
 @Schema({ _id: false })
-export class LikeDetails {
-  @Prop({ type: Date })
-  addedAt: Date;
-
-  @Prop({ type: Types.ObjectId })
-  userId: Types.ObjectId;
-
-  @Prop({ type: String })
-  login: string;
-}
-
-@Schema({ _id: false })
 export class ExtendedLikesInfo {
   @Prop({ type: Number, default: 0 })
   likesCount: number;
 
   @Prop({ type: Number, default: 0 })
   dislikesCount: number;
-
-  @Prop({ default: LikeStatus.None })
-  myStatus: LikeStatus;
-
-  @Prop({ type: Array, default: [] })
-  newestLikes: LikeDetails[];
 }
 @Schema({ timestamps: true })
 export class Post {
@@ -55,7 +37,7 @@ export class Post {
   @Prop({ type: Date, nullable: true, default: null })
   deletedAt: Date | null;
 
-  @Prop({ type: ExtendedLikesInfo, default: () => new LikeDetails() })
+  @Prop({ type: ExtendedLikesInfo, default: () => new ExtendedLikesInfo() })
   extendedLikesInfo: ExtendedLikesInfo;
 
   _id: Types.ObjectId;
@@ -87,6 +69,11 @@ export class Post {
     this.content = dto.content;
     this.blogId = new Types.ObjectId(dto.blogId);
     this.blogName = dto.blogName;
+  }
+
+  changeLikesCount(likesCount: number, dislikesCount: number) {
+    this.extendedLikesInfo.likesCount = likesCount;
+    this.extendedLikesInfo.dislikesCount = dislikesCount;
   }
 }
 

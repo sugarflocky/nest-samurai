@@ -16,6 +16,5 @@ import { TestingModule } from './features/testing/testing-module';
     TestingModule,
   ],
   controllers: [],
-  providers: [],
 })
 export class AppModule {}

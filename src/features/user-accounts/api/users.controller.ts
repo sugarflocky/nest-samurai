@@ -18,6 +18,7 @@ import { UsersQueryRepository } from '../infrastructure/query/users.query-reposi
 import { isValidObjectId } from 'mongoose';
 import { CreateUserInputDto } from './dto/input-dto/user-input.dto';
 import { BasicAuthGuard } from '../../../core/guards/basic-auth.guard';
+import { ParseObjectIdPipe } from '../../../core/pipes/parse-object-id.pipe';
 
 @Controller('users')
 export class UsersController {
@@ -43,19 +44,10 @@ export class UsersController {
     return this.usersQueryRepository.getAll(query);
   }
 
-  @Get(':id')
-  @HttpCode(200)
-  async getById(@Param('id') id: string): Promise<UserViewDto> {
-    if (!isValidObjectId(id)) {
-      throw new BadRequestException('Invalid user ID format');
-    }
-    return this.usersQueryRepository.getByIdOrNotFoundFail(id);
-  }
-
   @Delete(':id')
   @HttpCode(204)
   @UseGuards(BasicAuthGuard)
-  async delete(@Param('id') id: string) {
+  async delete(@Param('id', ParseObjectIdPipe) id: string) {
     if (!isValidObjectId(id)) {
       throw new BadRequestException('Invalid user ID format');
     }

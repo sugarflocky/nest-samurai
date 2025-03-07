@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -9,6 +8,8 @@ import {
   Post,
   Put,
   Query,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { BlogsService } from '../application/blogs.service';
 import { BlogsQueryRepository } from '../infrastructure/query/blogs.query-repository';
@@ -19,7 +20,6 @@ import {
 import { BlogViewDto } from './dto/view-dto/blog-view.dto';
 import { GetBlogsQueryParams } from './dto/input-dto/get-blogs-query-params.input-dto';
 import { PaginatedViewDto } from '../../../../core/dto/base.paginated.view-dto';
-import { isValidObjectId } from 'mongoose';
 import {
   CreatePostForBlogInputDto,
   CreatePostInputDto,
@@ -28,6 +28,9 @@ import { PostViewDto } from '../../posts/api/dto/view-dto/post-view.dto';
 import { PostsService } from '../../posts/application/posts.service';
 import { PostsQueryRepository } from '../../posts/infrastructure/query/posts.query-repository';
 import { GetPostsQueryParams } from '../../posts/api/dto/input-dto/get-posts-query-params.input-dto';
+import { BasicAuthGuard } from '../../../../core/guards/basic-auth.guard';
+import { OptionalJwtGuard } from '../../../../core/guards/optional-jwt-auth.guard';
+import { ParseObjectIdPipe } from '../../../../core/pipes/parse-object-id.pipe';
 
 @Controller('blogs')
 export class BlogsController {
@@ -40,6 +43,7 @@ export class BlogsController {
 
   @Post()
   @HttpCode(201)
+  @UseGuards(BasicAuthGuard)
   async create(@Body() createDto: CreateBlogInputDto): Promise<BlogViewDto> {
     const id = await this.blogsService.createBlog(createDto);
     return this.blogsQueryRepository.getByIdOrNotFoundFail(id);
@@ -55,43 +59,38 @@ export class BlogsController {
 
   @Get(':id')
   @HttpCode(200)
-  async getById(@Param('id') id: string): Promise<BlogViewDto> {
-    if (!isValidObjectId(id)) {
-      throw new BadRequestException('Invalid blog ID format');
-    }
+  async getById(
+    @Param('id', ParseObjectIdPipe) id: string,
+  ): Promise<BlogViewDto> {
     return this.blogsQueryRepository.getByIdOrNotFoundFail(id);
   }
 
   @Put(':id')
   @HttpCode(204)
-  async update(@Param('id') id: string, @Body() updateDto: UpdateBlogInputDto) {
-    if (!isValidObjectId(id)) {
-      throw new BadRequestException('Invalid blog ID format');
-    }
+  @UseGuards(BasicAuthGuard)
+  async update(
+    @Param('id', ParseObjectIdPipe) id: string,
+    @Body() updateDto: UpdateBlogInputDto,
+  ) {
     await this.blogsService.updateBlog(id, updateDto);
     return;
   }
 
   @Delete(':id')
   @HttpCode(204)
-  async delete(@Param('id') id: string) {
-    if (!isValidObjectId(id)) {
-      throw new BadRequestException('Invalid blog ID format');
-    }
-
+  @UseGuards(BasicAuthGuard)
+  async delete(@Param('id', ParseObjectIdPipe) id: string) {
     await this.blogsService.deleteBlog(id);
     return;
   }
 
   @Post(':id/posts')
   @HttpCode(201)
+  @UseGuards(BasicAuthGuard)
   async createPost(
-    @Param('id') id: string,
+    @Param('id', ParseObjectIdPipe) id: string,
     @Body() createDto: CreatePostForBlogInputDto,
   ): Promise<PostViewDto> {
-    if (!isValidObjectId(id)) {
-      throw new BadRequestException('Invalid blog ID format');
-    }
     const newCreateDto: CreatePostInputDto = {
       ...createDto,
       blogId: id,
@@ -103,14 +102,13 @@ export class BlogsController {
 
   @Get(':id/posts')
   @HttpCode(200)
+  @UseGuards(OptionalJwtGuard)
   async getPosts(
-    @Param('id') id: string,
+    @Param('id', ParseObjectIdPipe) id: string,
     @Query() query: GetPostsQueryParams,
+    @Request() req,
   ): Promise<PaginatedViewDto<PostViewDto[]>> {
-    if (!isValidObjectId(id)) {
-      throw new BadRequestException('Invalid blog ID format');
-    }
     await this.blogsQueryRepository.getByIdOrNotFoundFail(id);
-    return this.postsQueryRepository.getAll(query, id);
+    return this.postsQueryRepository.getAll(query, id, req.user?.id);
   }
 }

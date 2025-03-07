@@ -47,7 +47,7 @@ export class UsersRepository {
     return user;
   }
 
-  async findOrBadRequestByCode(code: string): Promise<UserDocument> {
+  async findOrBadRequestByEmailCode(code: string): Promise<UserDocument> {
     const user = await this.UserModel.findOne({
       'emailConfirmation.code': code,
       deletedAt: null,
@@ -57,6 +57,22 @@ export class UsersRepository {
         {
           message:
             'confirmation code is incorrect, expired or already been applied',
+          field: 'code',
+        },
+      ]);
+    return user;
+  }
+
+  async findOrBadRequestByRecoveryCode(code: string): Promise<UserDocument> {
+    const user = await this.UserModel.findOne({
+      'passwordRecovery.code': code,
+      deletedAt: null,
+    });
+    if (!user)
+      throw new BadRequestException([
+        {
+          message:
+            'recovery code is incorrect, expired or already been applied',
           field: 'code',
         },
       ]);

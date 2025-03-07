@@ -7,9 +7,10 @@ import { BcryptService } from './bcrypt.service';
 import { AuthService } from './auth.service';
 import { MailService } from './mail.service';
 import { v4 as uuidv4 } from 'uuid';
-import { CodeInputDto } from '../api/dto/input-dto/code-input.dto';
-import { EmailInputDto } from '../api/dto/input-dto/email-input.dto';
 import { add } from 'date-fns';
+import { EmailDto } from '../dto/email.dto';
+import { ChangePasswordDto } from '../dto/change-password.dto';
+import { CodeDto } from '../dto/code.dto';
 
 @Injectable()
 export class UsersService {
@@ -75,9 +76,9 @@ export class UsersService {
     return user._id.toString();
   }
 
-  async confirmEmail(codeDto: CodeInputDto) {
+  async confirmEmail(codeDto: CodeDto) {
     const { code } = codeDto;
-    const user = await this.usersRepository.findOrBadRequestByCode(code);
+    const user = await this.usersRepository.findOrBadRequestByEmailCode(code);
 
     if (user.emailConfirmation.isConfirmed)
       throw new BadRequestException([
@@ -99,7 +100,7 @@ export class UsersService {
     await this.usersRepository.save(user);
   }
 
-  async resendEmail(emailDto: EmailInputDto) {
+  async resendEmail(emailDto: EmailDto) {
     const { email } = emailDto;
     const user = await this.usersRepository.findByEmail(email);
     if (!user)
@@ -123,6 +124,30 @@ export class UsersService {
 
     this.mailService.sendCode(user.email, user.emailConfirmation.code);
 
+    await this.usersRepository.save(user);
+  }
+
+  async recoveryPassword(emailDto: EmailDto) {
+    const { email } = emailDto;
+    const user = await this.usersRepository.findByEmail(email);
+    if (!user) return;
+
+    user.recoveryPassword();
+
+    this.mailService.sendRecoveryCode(user.email, user.passwordRecovery!.code);
+    await this.usersRepository.save(user);
+  }
+
+  async changePassword(changePasswordDto: ChangePasswordDto) {
+    const user = await this.usersRepository.findOrBadRequestByRecoveryCode(
+      changePasswordDto.recoveryCode,
+    );
+
+    const password = await this.bcryptService.generateHash(
+      changePasswordDto.newPassword,
+    );
+
+    user.changePassword(password);
     await this.usersRepository.save(user);
   }
 

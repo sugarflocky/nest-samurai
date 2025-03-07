@@ -4,6 +4,7 @@ import { Blog, BlogModelType } from '../domain/blog.entity';
 import { BlogsRepository } from '../infrastructure/blogs-repository';
 import { CreateBlogDto } from '../dto/create-blog.dto';
 import { UpdateBlogDto } from '../dto/update-blog.dto';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class BlogsService {
@@ -39,5 +40,13 @@ export class BlogsService {
     blog.makeDeleted();
 
     await this.blogsRepository.save(blog);
+  }
+
+  async exists(blogId: string): Promise<boolean> {
+    if (!Types.ObjectId.isValid(blogId)) {
+      return false;
+    }
+    const blog = await this.BlogModel.findById(blogId);
+    return !!blog;
   }
 }

@@ -14,6 +14,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from '../../core/strategies/jwt.strategy';
 import * as dotenv from 'dotenv';
 import { MailService } from './application/mail.service';
+import { OptionalJwtStrategy } from '../../core/strategies/optional-jwt.strategy';
 
 dotenv.config();
 
@@ -34,7 +35,9 @@ dotenv.config();
     BcryptService,
     BasicStrategy,
     JwtStrategy,
+    OptionalJwtStrategy,
     MailService,
   ],
+  exports: [UsersRepository, JwtModule],
 })
 export class UserAccountsModule {}

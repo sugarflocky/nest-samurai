@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PostsRepository } from '../infrastructure/posts.repository';
 import { InjectModel } from '@nestjs/mongoose';
 import { Post, PostModelType } from '../domain/post.entity';
@@ -7,6 +11,9 @@ import {
   CreatePostInputDto,
   UpdatePostInputDto,
 } from '../api/dto/input-dto/post-input.dto';
+import { CreateLikeDto } from '../../likes/dto/create-like.dto';
+import { LikesService } from '../../likes/application/likes.service';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class PostsService {
@@ -14,9 +21,19 @@ export class PostsService {
     @InjectModel(Post.name) private PostModel: PostModelType,
     private readonly postsRepository: PostsRepository,
     private readonly blogsRepository: BlogsRepository,
+    private readonly likesService: LikesService,
   ) {}
 
   async createPost(dto: CreatePostInputDto): Promise<string> {
+    if (!Types.ObjectId.isValid(dto.blogId)) {
+      throw new BadRequestException([
+        {
+          message: 'incorrect blogId',
+          field: 'blogId',
+        },
+      ]);
+    }
+
     const blog = await this.blogsRepository.findById(dto.blogId.toString());
     if (!blog) {
       throw new NotFoundException('blog not found');
@@ -32,7 +49,16 @@ export class PostsService {
   }
 
   async updatePost(id: string, dto: UpdatePostInputDto): Promise<string> {
-    const blog = await this.blogsRepository.findById(dto.blogId.toString());
+    if (!Types.ObjectId.isValid(dto.blogId)) {
+      throw new BadRequestException([
+        {
+          message: 'incorrect blogId',
+          field: 'blogId',
+        },
+      ]);
+    }
+
+    const blog = await this.blogsRepository.findById(dto.blogId);
     if (!blog) {
       throw new NotFoundException('blog not found');
     }
@@ -53,6 +79,18 @@ export class PostsService {
 
     post.makeDeleted();
 
+    await this.postsRepository.save(post);
+  }
+
+  async likePost(dto: CreateLikeDto) {
+    const post = await this.postsRepository.findOrNotFoundFail(dto.parentId);
+    await this.likesService.like(dto);
+
+    const { likes, dislikes } = await this.likesService.countLikesAndDislikes(
+      dto.parentId,
+    );
+
+    post.changeLikesCount(likes, dislikes);
     await this.postsRepository.save(post);
   }
 }

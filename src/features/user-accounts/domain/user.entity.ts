@@ -42,8 +42,8 @@ export class User {
   @Prop({ type: EmailConfirmation, default: new EmailConfirmation() })
   emailConfirmation: EmailConfirmation;
 
-  @Prop({ type: PasswordRecovery })
-  passwordRecovery: PasswordRecovery;
+  @Prop({ type: PasswordRecovery, nullable: true, default: null })
+  passwordRecovery: PasswordRecovery | null;
 
   _id: Types.ObjectId;
   createdAt: Date;
@@ -56,6 +56,15 @@ export class User {
     user.email = dto.email;
 
     return user as UserDocument;
+  }
+
+  recoveryPassword() {
+    this.passwordRecovery = new PasswordRecovery();
+  }
+
+  changePassword(newPassword: string) {
+    this.password = newPassword;
+    this.passwordRecovery = null;
   }
 
   makeDeleted() {

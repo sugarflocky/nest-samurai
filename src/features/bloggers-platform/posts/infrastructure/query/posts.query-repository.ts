@@ -5,12 +5,19 @@ import { PostViewDto } from '../../api/dto/view-dto/post-view.dto';
 import { GetPostsQueryParams } from '../../api/dto/input-dto/get-posts-query-params.input-dto';
 import { PaginatedViewDto } from '../../../../../core/dto/base.paginated.view-dto';
 import { Types } from 'mongoose';
+import { PostsViewService } from '../../application/posts-view.service';
 
 @Injectable()
 export class PostsQueryRepository {
-  constructor(@InjectModel(Post.name) private PostModel: PostModelType) {}
+  constructor(
+    @InjectModel(Post.name) private PostModel: PostModelType,
+    private postsViewService: PostsViewService,
+  ) {}
 
-  async getByIdOrNotFoundFail(id: string): Promise<PostViewDto> {
+  async getByIdOrNotFoundFail(
+    id: string,
+    userId: string = new Types.ObjectId().toString(),
+  ): Promise<PostViewDto> {
     const post = await this.PostModel.findOne({
       _id: id,
       deletedAt: null,
@@ -20,12 +27,13 @@ export class PostsQueryRepository {
       throw new NotFoundException('post not found');
     }
 
-    return PostViewDto.mapToView(post);
+    return this.postsViewService.mapToView(post, userId);
   }
 
   async getAll(
     query: GetPostsQueryParams,
     blogId: string | null = null,
+    userId: string = new Types.ObjectId().toString(),
   ): Promise<PaginatedViewDto<PostViewDto[]>> {
     const { sortBy, sortDirection, pageSize, pageNumber } = query;
     let filter: any = {
@@ -48,7 +56,7 @@ export class PostsQueryRepository {
     const totalCount = await this.PostModel.countDocuments(filter).exec();
 
     const data = {
-      items: items.map((post) => PostViewDto.mapToView(post)),
+      items: await this.postsViewService.mapToViewList(items, userId),
       page: pageNumber,
       size: pageSize,
       totalCount: totalCount,
