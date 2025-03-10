@@ -51,8 +51,6 @@ export class CommentsQueryRepository {
       .limit(pageSize)
       .exec();
 
-    console.log(items);
-
     const totalCount = await this.CommentModel.countDocuments(filter).exec();
 
     await this.commentsViewService.mapToViewList(items, userId);

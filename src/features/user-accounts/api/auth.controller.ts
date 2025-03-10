@@ -11,7 +11,6 @@ import {
 import { LoginInputDto } from './dto/input-dto/login-input.dto';
 import { SuccessLoginViewDto } from './dto/view-dto/success-login-view.dto';
 import { AuthService } from '../application/auth.service';
-import { JwtAuthGuard } from '../../../core/guards/jwt-auth.guard';
 import { UsersQueryRepository } from '../infrastructure/query/users.query-repository';
 import { RegisterInputDto } from './dto/input-dto/register-input.dto';
 import { UsersService } from '../application/users.service';
@@ -19,6 +18,9 @@ import { CodeInputDto } from './dto/input-dto/code-input.dto';
 import { EmailInputDto } from './dto/input-dto/email-input.dto';
 import { ChangePasswordInputDto } from './dto/input-dto/change-password-input.dto';
 import { Response } from 'express';
+import { JwtAuthGuard } from '../../../core/guards/bearer/jwt-auth.guard';
+import { ExtractUserFromRequest } from '../../../core/guards/decorators/param/extract-user-from-request.decorator';
+import { UserContextDto } from '../../../core/guards/dto/user-context.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -82,8 +84,7 @@ export class AuthController {
   @Get('/me')
   @UseGuards(JwtAuthGuard)
   @HttpCode(200)
-  async me(@Request() req) {
-    //TODO: Change @Request() to @UserIdInRequest()
-    return this.usersQueryRepository.getUserByAccessToken(req.user.id);
+  async me(@ExtractUserFromRequest() user: UserContextDto) {
+    return this.usersQueryRepository.getUserByAccessToken(user.id);
   }
 }

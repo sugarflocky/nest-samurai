@@ -17,8 +17,7 @@ import { UsersService } from '../application/users.service';
 import { UsersQueryRepository } from '../infrastructure/query/users.query-repository';
 import { isValidObjectId } from 'mongoose';
 import { CreateUserInputDto } from './dto/input-dto/user-input.dto';
-import { BasicAuthGuard } from '../../../core/guards/basic-auth.guard';
-import { ParseObjectIdPipe } from '../../../core/pipes/parse-object-id.pipe';
+import { BasicAuthGuard } from '../../../core/guards/basic/basic-auth.guard';
 
 @Controller('users')
 export class UsersController {
@@ -47,7 +46,7 @@ export class UsersController {
   @Delete(':id')
   @HttpCode(204)
   @UseGuards(BasicAuthGuard)
-  async delete(@Param('id', ParseObjectIdPipe) id: string) {
+  async delete(@Param('id') id: string) {
     if (!isValidObjectId(id)) {
       throw new BadRequestException('Invalid user ID format');
     }

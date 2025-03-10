@@ -1,9 +1,8 @@
 import { IsNotEmpty, IsString, Length } from 'class-validator';
-import { toTrimmedString } from '../../../../../../core/pipes/to-trimmed-string.pipe';
-import { Transform } from 'class-transformer';
+import { Trim } from '../../../../../../core/decorators/transform/trim';
 
 export class UpdateCommentInputDto {
-  @Transform(({ value }) => toTrimmedString(value))
+  @Trim()
   @IsString()
   @IsNotEmpty()
   @Length(20, 300)

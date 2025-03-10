@@ -13,10 +13,12 @@ import { CommentsService } from '../application/comments.service';
 import { CommentsQueryRepository } from '../infrastructure/query/comments.query-repository';
 import { CommentViewDto } from './dto/view-dto/comment-view.dto';
 import { UpdateCommentInputDto } from './dto/input-dto/update-comment-input.dto';
-import { JwtAuthGuard } from '../../../../core/guards/jwt-auth.guard';
 import { LikeCommentInputDto } from './dto/input-dto/like-comment-input.dto';
-import { OptionalJwtGuard } from '../../../../core/guards/optional-jwt-auth.guard';
-import { ParseObjectIdPipe } from '../../../../core/pipes/parse-object-id.pipe';
+import { JwtAuthGuard } from '../../../../core/guards/bearer/jwt-auth.guard';
+import { JwtOptionalAuthGuard } from '../../../../core/guards/bearer/jwt-optional-auth.guard';
+import { ExtractUserIfExistsFromRequest } from '../../../../core/guards/decorators/param/extract-user-if-exist-from-request.decorator';
+import { UserContextDto } from '../../../../core/guards/dto/user-context.dto';
+import { ExtractUserFromRequest } from '../../../../core/guards/decorators/param/extract-user-from-request.decorator';
 
 @Controller('comments')
 export class CommentsController {
@@ -27,25 +29,25 @@ export class CommentsController {
 
   @Get(':id')
   @HttpCode(200)
-  @UseGuards(OptionalJwtGuard)
+  @UseGuards(JwtOptionalAuthGuard)
   async getById(
-    @Param('id', ParseObjectIdPipe) id: string,
-    @Request() req,
+    @Param('id') id: string,
+    @ExtractUserIfExistsFromRequest() user: UserContextDto,
   ): Promise<CommentViewDto> {
-    return this.commentsQueryRepository.getByIdOrNotFoundFail(id, req.user?.id);
+    return this.commentsQueryRepository.getByIdOrNotFoundFail(id, user?.id);
   }
 
   @Put(':id')
   @HttpCode(204)
   @UseGuards(JwtAuthGuard)
   async update(
-    @Param('id', ParseObjectIdPipe) id: string,
+    @Param('id') id: string,
     @Body() updateDto: UpdateCommentInputDto,
-    @Request() req,
+    @ExtractUserFromRequest() user: UserContextDto,
   ) {
     await this.commentsService.updateComment(id, {
       ...updateDto,
-      userId: req.user.id,
+      userId: user.id,
     });
   }
 
@@ -53,24 +55,24 @@ export class CommentsController {
   @HttpCode(204)
   @UseGuards(JwtAuthGuard)
   async delete(
-    @Param('id', ParseObjectIdPipe) id: string,
-    @Request() req,
+    @Param('id') id: string,
+    @ExtractUserFromRequest() user: UserContextDto,
   ): Promise<void> {
-    await this.commentsService.deleteComment(id, req.user.id);
+    await this.commentsService.deleteComment(id, user.id);
   }
 
   @Put(':id/like-status')
   @HttpCode(204)
   @UseGuards(JwtAuthGuard)
   async like(
-    @Param('id', ParseObjectIdPipe) id: string,
+    @Param('id') id: string,
     @Body() dto: LikeCommentInputDto,
-    @Request() req,
+    @ExtractUserFromRequest() user: UserContextDto,
   ): Promise<void> {
     await this.commentsService.likeComment({
       parentId: id,
       status: dto.likeStatus,
-      userId: req.user.id,
+      userId: user.id,
     });
   }
 }

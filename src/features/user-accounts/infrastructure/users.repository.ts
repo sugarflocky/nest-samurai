@@ -6,6 +6,7 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { BadRequestDomainException } from '../../../core/exceptions/domain-exceptions';
 
 @Injectable()
 export class UsersRepository {
@@ -52,14 +53,7 @@ export class UsersRepository {
       'emailConfirmation.code': code,
       deletedAt: null,
     });
-    if (!user)
-      throw new BadRequestException([
-        {
-          message:
-            'confirmation code is incorrect, expired or already been applied',
-          field: 'code',
-        },
-      ]);
+    if (!user) throw BadRequestDomainException.create('123', 'body');
     return user;
   }
 

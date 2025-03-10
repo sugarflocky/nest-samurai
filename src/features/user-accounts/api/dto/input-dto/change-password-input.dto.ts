@@ -1,15 +1,14 @@
 import { IsNotEmpty, IsString, Length } from 'class-validator';
 import { ChangePasswordDto } from '../../../dto/change-password.dto';
-import { toTrimmedString } from '../../../../../core/pipes/to-trimmed-string.pipe';
-import { Transform } from 'class-transformer';
+import { Trim } from '../../../../../core/decorators/transform/trim';
 
 export class ChangePasswordInputDto implements ChangePasswordDto {
-  @Transform(({ value }) => toTrimmedString(value))
+  @Trim()
   @IsString()
   @IsNotEmpty()
   @Length(6, 20)
   newPassword: string;
-  @Transform(({ value }) => toTrimmedString(value))
+  @Trim()
   @IsString()
   @IsNotEmpty()
   recoveryCode: string;

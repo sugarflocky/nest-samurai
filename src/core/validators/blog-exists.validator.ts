@@ -12,7 +12,6 @@ export class BlogExistsValidator implements ValidatorConstraintInterface {
   constructor(protected readonly blogsService: BlogsService) {}
 
   async validate(blogId: string): Promise<boolean> {
-    console.log(this);
     if (!blogId) return false;
     return await this.blogsService.exists(blogId);
   }

@@ -7,13 +7,11 @@ import { PostsRepository } from '../infrastructure/posts.repository';
 import { InjectModel } from '@nestjs/mongoose';
 import { Post, PostModelType } from '../domain/post.entity';
 import { BlogsRepository } from '../../blogs/infrastructure/blogs-repository';
-import {
-  CreatePostInputDto,
-  UpdatePostInputDto,
-} from '../api/dto/input-dto/post-input.dto';
+import { CreatePostInputDto } from '../api/dto/input-dto/post-input.dto';
 import { CreateLikeDto } from '../../likes/dto/create-like.dto';
 import { LikesService } from '../../likes/application/likes.service';
 import { Types } from 'mongoose';
+import { UpdatePostInputDto } from '../api/dto/input-dto/update-post-input.dto';
 
 @Injectable()
 export class PostsService {

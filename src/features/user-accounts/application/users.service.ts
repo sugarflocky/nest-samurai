@@ -11,6 +11,10 @@ import { add } from 'date-fns';
 import { EmailDto } from '../dto/email.dto';
 import { ChangePasswordDto } from '../dto/change-password.dto';
 import { CodeDto } from '../dto/code.dto';
+import {
+  BadRequestDomainException,
+  ErrorExtension,
+} from '../../../core/exceptions/domain-exceptions';
 
 @Injectable()
 export class UsersService {
@@ -43,20 +47,20 @@ export class UsersService {
     const loginTest = await this.usersRepository.findByLogin(login);
     const emailTest = await this.usersRepository.findByEmail(email);
     if (emailTest || loginTest) {
-      const errorsMessages: { message: string; field: string }[] = [];
+      const errorsMessages: ErrorExtension[] = [];
       if (emailTest) {
         errorsMessages.push({
           message: 'user with same email already exists',
-          field: 'email',
+          key: 'email',
         });
       }
       if (loginTest) {
         errorsMessages.push({
           message: 'user with same login already exists',
-          field: 'login',
+          key: 'login',
         });
       }
-      throw new BadRequestException(errorsMessages);
+      throw new BadRequestDomainException(errorsMessages);
     }
   }
 
@@ -80,22 +84,14 @@ export class UsersService {
     const { code } = codeDto;
     const user = await this.usersRepository.findOrBadRequestByEmailCode(code);
 
-    if (user.emailConfirmation.isConfirmed)
-      throw new BadRequestException([
-        {
-          message:
-            'confirmation code is incorrect, expired or already been applied',
-          field: 'code',
-        },
-      ]);
-    if (user.emailConfirmation.expirationDate < new Date())
-      throw new BadRequestException([
-        {
-          message:
-            'confirmation code is incorrect, expired or already been applied',
-          field: 'code',
-        },
-      ]);
+    if (user.emailConfirmation.isConfirmed) {
+      console.log(1);
+      throw BadRequestDomainException.create();
+    }
+    if (user.emailConfirmation.expirationDate < new Date()) {
+      console.log(2);
+      throw BadRequestDomainException.create();
+    }
     user.confirmEmail();
     await this.usersRepository.save(user);
   }

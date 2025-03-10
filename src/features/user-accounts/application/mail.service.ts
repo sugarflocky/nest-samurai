@@ -1,16 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
+import { UserAccountsConfig } from '../user-accounts.config';
 
 @Injectable()
 export class MailService {
   private transport: nodemailer.Transporter;
 
-  constructor() {
+  constructor(private userAccountsConfig: UserAccountsConfig) {
     this.transport = nodemailer.createTransport({
       service: 'Mail.ru',
       auth: {
         user: 'zippen1337@mail.ru',
-        pass: process.env.MAIL_PASS as string, // Явное приведение типа
+        pass: this.userAccountsConfig.getMailPass,
       },
     }) as nodemailer.Transporter;
   }

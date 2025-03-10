@@ -2,14 +2,14 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { appSetup } from './setup/app.setup';
 import * as dotenv from 'dotenv';
-import { useContainer } from 'class-validator';
+import { CoreConfig } from './core/core.config';
 
 dotenv.config();
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  useContainer(app.select(AppModule), { fallbackOnErrors: true });
+  const coreConfig = app.get(CoreConfig);
   appSetup(app);
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(coreConfig.getPort);
 }
 bootstrap();

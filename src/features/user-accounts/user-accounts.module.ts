@@ -1,30 +1,30 @@
-import * as process from 'node:process';
-import { Module } from '@nestjs/common';
 import { UsersController } from './api/users.controller';
 import { UsersService } from './application/users.service';
 import { User, UserSchema } from './domain/user.entity';
-import { MongooseModule } from '@nestjs/mongoose';
 import { UsersRepository } from './infrastructure/users.repository';
 import { UsersQueryRepository } from './infrastructure/query/users.query-repository';
-import { BasicStrategy } from '../../core/strategies/basic.strategy';
 import { AuthController } from './api/auth.controller';
 import { AuthService } from './application/auth.service';
 import { BcryptService } from './application/bcrypt.service';
-import { JwtModule } from '@nestjs/jwt';
-import { JwtStrategy } from '../../core/strategies/jwt.strategy';
+import { JwtModule, JwtService } from '@nestjs/jwt';
 import * as dotenv from 'dotenv';
 import { MailService } from './application/mail.service';
-import { OptionalJwtStrategy } from '../../core/strategies/optional-jwt.strategy';
+import { UserAccountsConfig } from './user-accounts.config';
+import { Module } from '@nestjs/common';
+import { MongooseModule } from '@nestjs/mongoose';
+import {
+  ACCESS_TOKEN_STRATEGY_INJECT_TOKEN,
+  REFRESH_TOKEN_STRATEGY_INJECT_TOKEN,
+} from './constants/auth-token.inject-constant';
+import { JwtStrategy } from '../../core/guards/bearer/jwt.strategy';
+import { LocalStrategy } from '../../core/guards/local/local.strategy';
 
 dotenv.config();
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
-    JwtModule.register({
-      secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: process.env.ACCESS_TOKEN_EXPIRESIN },
-    }),
+    JwtModule,
   ],
   controllers: [UsersController, AuthController],
   providers: [
@@ -33,10 +33,30 @@ dotenv.config();
     UsersQueryRepository,
     AuthService,
     BcryptService,
-    BasicStrategy,
-    JwtStrategy,
-    OptionalJwtStrategy,
     MailService,
+    UserAccountsConfig,
+    {
+      provide: ACCESS_TOKEN_STRATEGY_INJECT_TOKEN,
+      useFactory: (userAccountConfig: UserAccountsConfig): JwtService => {
+        return new JwtService({
+          secret: userAccountConfig.getAccessTokenSecret,
+          signOptions: { expiresIn: userAccountConfig.getAccessTokenExpireIn },
+        });
+      },
+      inject: [UserAccountsConfig],
+    },
+    {
+      provide: REFRESH_TOKEN_STRATEGY_INJECT_TOKEN,
+      useFactory: (userAccountConfig: UserAccountsConfig): JwtService => {
+        return new JwtService({
+          secret: userAccountConfig.getRefreshTokenSecret,
+          signOptions: { expiresIn: userAccountConfig.getRefreshTokenExpireIn },
+        });
+      },
+      inject: [UserAccountsConfig],
+    },
+    JwtStrategy,
+    LocalStrategy,
   ],
   exports: [UsersRepository, JwtModule],
 })
