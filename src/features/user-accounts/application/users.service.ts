@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserModelType } from '../domain/user.entity';
 import { CreateUserDto } from '../dto/create-user.dto';
@@ -51,13 +51,13 @@ export class UsersService {
       if (emailTest) {
         errorsMessages.push({
           message: 'user with same email already exists',
-          key: 'email',
+          field: 'email',
         });
       }
       if (loginTest) {
         errorsMessages.push({
           message: 'user with same login already exists',
-          key: 'login',
+          field: 'login',
         });
       }
       throw new BadRequestDomainException(errorsMessages);
@@ -85,12 +85,16 @@ export class UsersService {
     const user = await this.usersRepository.findOrBadRequestByEmailCode(code);
 
     if (user.emailConfirmation.isConfirmed) {
-      console.log(1);
-      throw BadRequestDomainException.create();
+      throw BadRequestDomainException.create(
+        'recovery code is incorrect, expired or already been applied',
+        'code',
+      );
     }
     if (user.emailConfirmation.expirationDate < new Date()) {
-      console.log(2);
-      throw BadRequestDomainException.create();
+      throw BadRequestDomainException.create(
+        'recovery code is incorrect, expired or already been applied',
+        'code',
+      );
     }
     user.confirmEmail();
     await this.usersRepository.save(user);
@@ -99,20 +103,18 @@ export class UsersService {
   async resendEmail(emailDto: EmailDto) {
     const { email } = emailDto;
     const user = await this.usersRepository.findByEmail(email);
-    if (!user)
-      throw new BadRequestException([
-        {
-          message: 'user email doesnt exist',
-          field: 'email',
-        },
-      ]);
+    if (!user) {
+      throw BadRequestDomainException.create(
+        'user email doesnt exist',
+        'email',
+      );
+    }
+
     if (user.emailConfirmation.isConfirmed) {
-      throw new BadRequestException([
-        {
-          message: 'email already confirmed',
-          field: 'email',
-        },
-      ]);
+      throw BadRequestDomainException.create(
+        'email already confirmed',
+        'email',
+      );
     }
 
     user.emailConfirmation.expirationDate = add(new Date(), { hours: 24 });

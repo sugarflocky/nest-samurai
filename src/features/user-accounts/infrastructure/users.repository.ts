@@ -1,12 +1,11 @@
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument, UserModelType } from '../domain/user.entity';
+import { Injectable } from '@nestjs/common';
 import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
-import { BadRequestDomainException } from '../../../core/exceptions/domain-exceptions';
+  BadRequestDomainException,
+  NotFoundDomainException,
+  UnauthorizedDomainException,
+} from '../../../core/exceptions/domain-exceptions';
 
 @Injectable()
 export class UsersRepository {
@@ -28,8 +27,7 @@ export class UsersRepository {
     const user = await this.findById(id);
 
     if (!user) {
-      //TODO: replace with domain exception
-      throw new NotFoundException('user not found');
+      throw NotFoundDomainException.create('user not found');
     }
 
     return user;
@@ -43,7 +41,7 @@ export class UsersRepository {
       ],
     });
     if (!user) {
-      throw new UnauthorizedException('incorrect login or password');
+      throw UnauthorizedDomainException.create('incorrect login or password');
     }
     return user;
   }
@@ -53,7 +51,9 @@ export class UsersRepository {
       'emailConfirmation.code': code,
       deletedAt: null,
     });
-    if (!user) throw BadRequestDomainException.create('123', 'body');
+    if (!user) {
+      throw BadRequestDomainException.create('user not found', 'user');
+    }
     return user;
   }
 
@@ -63,13 +63,10 @@ export class UsersRepository {
       deletedAt: null,
     });
     if (!user)
-      throw new BadRequestException([
-        {
-          message:
-            'recovery code is incorrect, expired or already been applied',
-          field: 'code',
-        },
-      ]);
+      throw BadRequestDomainException.create(
+        'recovery code is incorrect, expired or already been applied',
+        'code',
+      );
     return user;
   }
 

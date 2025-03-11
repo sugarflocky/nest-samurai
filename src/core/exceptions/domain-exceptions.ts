@@ -3,7 +3,7 @@ import { DomainExceptionCode } from './domain-exception-codes';
 export class ErrorExtension {
   constructor(
     public message: string,
-    public key: string | null = null,
+    public field: string | null = null,
   ) {}
 }
 
@@ -25,10 +25,10 @@ export class BadRequestDomainException extends DomainException {
   /**
    * To create the most common exception with one extension or without one
    * @param message
-   * @param key
+   * @param field
    */
-  static create(message?: string, key?: string) {
-    return new this(message ? [new ErrorExtension(message, key)] : []);
+  static create(message?: string, field?: string) {
+    return new this(message ? [new ErrorExtension(message, field)] : []);
   }
 }
 
@@ -40,10 +40,10 @@ export class ForbiddenDomainException extends DomainException {
   /**
    * To create the most common exception with one extension or without one
    * @param message
-   * @param key
+   * @param field
    */
-  static create(message?: string, key?: string) {
-    return new this(message ? [new ErrorExtension(message, key)] : []);
+  static create(message?: string, field?: string) {
+    return new this(message ? [new ErrorExtension(message, field)] : []);
   }
 }
 
@@ -55,10 +55,10 @@ export class UnauthorizedDomainException extends DomainException {
   /**
    * To create the most common exception with one extension or without one
    * @param message
-   * @param key
+   * @param field
    */
-  static create(message?: string, key?: string) {
-    return new this(message ? [new ErrorExtension(message, key)] : []);
+  static create(message?: string, field?: string) {
+    return new this(message ? [new ErrorExtension(message, field)] : []);
   }
 }
 
@@ -70,43 +70,9 @@ export class NotFoundDomainException extends DomainException {
   /**
    * To create the most common exception with one extension or without one
    * @param message
-   * @param key
+   * @param field
    */
-  static create(message?: string, key?: string) {
-    return new this(message ? [new ErrorExtension(message, key)] : []);
+  static create(message?: string, field?: string) {
+    return new this(message ? [new ErrorExtension(message, field)] : []);
   }
 }
-
-//для устранения дублирования можно использовать typescript mixin для создания классов с одинаковым статическим методом create
-//https://www.typescriptlang.org/docs/handbook/mixins.html
-// function ConcreteDomainExceptionFactory(
-//   commonMessage: string,
-//   code: DomainExceptionCode,
-// ) {
-//   return class extends DomainException {
-//     constructor(extensions: ErrorExtension[]) {
-//       super(commonMessage, code, extensions);
-//     }
-//
-//     static create(message?: string, key?: string) {
-//       return new this(message ? [new ErrorExtension(message, key)] : []);
-//     }
-//   };
-// }
-//
-// export const NotFoundDomainException = ConcreteDomainExceptionFactory(
-//   'Not Found',
-//   DomainExceptionCode.NotFound,
-// );
-// export const BadRequestDomainException = ConcreteDomainExceptionFactory(
-//   'Bad Request',
-//   DomainExceptionCode.BadRequest,
-// );
-// export const ForbiddenDomainException = ConcreteDomainExceptionFactory(
-//   'Forbidden',
-//   DomainExceptionCode.Forbidden,
-// );
-// export const UnauthorizedDomainException = ConcreteDomainExceptionFactory(
-//   'Unauthorized',
-//   DomainExceptionCode.Unauthorized,
-// );

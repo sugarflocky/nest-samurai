@@ -1,10 +1,11 @@
 import { User, UserModelType } from '../../domain/user.entity';
 import { InjectModel } from '@nestjs/mongoose';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { UserViewDto } from '../../api/dto/view-dto/user-view.dto';
 import { PaginatedViewDto } from '../../../../core/dto/base.paginated.view-dto';
 import { GetUsersQueryParams } from '../../api/dto/input-dto/get-users-query-params.input-dto';
 import { MeViewDto } from '../../api/dto/view-dto/me-view.dto';
+import { NotFoundDomainException } from '../../../../core/exceptions/domain-exceptions';
 
 @Injectable()
 export class UsersQueryRepository {
@@ -20,7 +21,7 @@ export class UsersQueryRepository {
     });
 
     if (!user) {
-      throw new NotFoundException('user not found');
+      throw NotFoundDomainException.create('user not found');
     }
 
     return UserViewDto.mapToView(user);
@@ -86,7 +87,7 @@ export class UsersQueryRepository {
     });
 
     if (!user) {
-      throw new NotFoundException('user not found');
+      throw NotFoundDomainException.create('user not found');
     }
 
     return MeViewDto.mapToView(user);

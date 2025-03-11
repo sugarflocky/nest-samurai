@@ -1,10 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import {
   Comment,
   CommentDocument,
   CommentModelType,
 } from '../domain/comment.entity';
+import { NotFoundDomainException } from '../../../../core/exceptions/domain-exceptions';
 @Injectable()
 export class CommentsRepository {
   constructor(
@@ -25,7 +26,7 @@ export class CommentsRepository {
   async findOrNotFoundFail(id: string): Promise<CommentDocument> {
     const comment = await this.findById(id);
     if (!comment) {
-      throw new NotFoundException('comment not found');
+      throw NotFoundDomainException.create('comment not found');
     }
 
     return comment;

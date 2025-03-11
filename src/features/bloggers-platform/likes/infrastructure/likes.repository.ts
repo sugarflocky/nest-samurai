@@ -1,8 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Like, LikeDocument, LikeModelType } from '../domain/like.entity';
 import { Types } from 'mongoose';
 import { LikeStatus } from '../../posts/domain/post.entity';
+import { NotFoundDomainException } from '../../../../core/exceptions/domain-exceptions';
 
 @Injectable()
 export class LikesRepository {
@@ -13,7 +14,7 @@ export class LikesRepository {
       _id: id,
     });
     if (!like) {
-      throw new NotFoundException('like not found');
+      throw NotFoundDomainException.create('like not found');
     }
 
     return like;

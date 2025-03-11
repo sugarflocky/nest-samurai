@@ -8,12 +8,15 @@ import { BadRequestDomainException } from '../exceptions/domain-exceptions';
 export class ObjectIdValidationTransformationPipe implements PipeTransform {
   transform(value: string, metadata: ArgumentMetadata): any {
     // Проверяем, что тип данных в декораторе — ObjectId
-    if (metadata.metatype !== Types.ObjectId) {
+    if (metadata.metatype !== String) {
       return value;
     }
 
     if (!isValidObjectId(value)) {
-      throw BadRequestDomainException.create(`Invalid ObjectId: ${value}`);
+      throw BadRequestDomainException.create(
+        `Invalid ObjectId: ${value}`,
+        'param',
+      );
     }
     return new Types.ObjectId(value); // Преобразуем строку в ObjectId
 
@@ -30,7 +33,10 @@ export class ObjectIdValidationPipe implements PipeTransform {
     // Проверяем, что тип данных в декораторе — ObjectId
 
     if (!isValidObjectId(value)) {
-      throw BadRequestDomainException.create(`Invalid ObjectId: ${value}`);
+      throw BadRequestDomainException.create(
+        `Invalid ObjectId: ${value}`,
+        'param',
+      );
     }
 
     // Если тип не ObjectId, возвращаем значение без изменений

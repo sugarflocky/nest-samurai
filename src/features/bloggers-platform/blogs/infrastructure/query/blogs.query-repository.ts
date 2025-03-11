@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Blog, BlogModelType } from '../../domain/blog.entity';
 import { BlogViewDto } from '../../api/dto/view-dto/blog-view.dto';
 import { GetBlogsQueryParams } from '../../api/dto/input-dto/get-blogs-query-params.input-dto';
 import { PaginatedViewDto } from '../../../../../core/dto/base.paginated.view-dto';
+import { NotFoundDomainException } from '../../../../../core/exceptions/domain-exceptions';
 
 @Injectable()
 export class BlogsQueryRepository {
@@ -19,7 +20,7 @@ export class BlogsQueryRepository {
     });
 
     if (!blog) {
-      throw new NotFoundException('blog not found');
+      throw NotFoundDomainException.create('blog not found');
     }
 
     return BlogViewDto.mapToView(blog);

@@ -1,9 +1,10 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { SuccessLoginViewDto } from '../api/dto/view-dto/success-login-view.dto';
 import { LoginInputDto } from '../api/dto/input-dto/login-input.dto';
 import { BcryptService } from './bcrypt.service';
 import { UsersRepository } from '../infrastructure/users.repository';
 import { JwtService } from '@nestjs/jwt';
+import { UnauthorizedDomainException } from '../../../core/exceptions/domain-exceptions';
 
 @Injectable()
 export class AuthService {
@@ -22,7 +23,7 @@ export class AuthService {
       user.password,
     );
     if (!result) {
-      throw new UnauthorizedException('Invalid login or password');
+      throw UnauthorizedDomainException.create('Invalid login or password');
     }
     return user._id.toString();
   }

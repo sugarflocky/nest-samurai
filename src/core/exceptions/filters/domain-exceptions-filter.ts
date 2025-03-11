@@ -1,11 +1,7 @@
 //Ошибки класса DomainException (instanceof DomainException)
 import { Catch, HttpStatus } from '@nestjs/common';
 import { DomainException } from '../domain-exceptions';
-import {
-  BaseHttpExceptionFilter,
-  HttpResponseBody,
-} from './base-exception-filter';
-import { Request } from 'express';
+import { BaseHttpExceptionFilter } from './base-exception-filter';
 import { DomainExceptionCode } from '../domain-exception-codes';
 
 @Catch(DomainException)
@@ -25,16 +21,10 @@ export class DomainHttpExceptionsFilter extends BaseHttpExceptionFilter<DomainEx
     }
   }
 
-  getResponseBody(
-    exception: DomainException,
-    request: Request,
-  ): HttpResponseBody {
+  // @ts-ignore
+  getResponseBody(exception: DomainException) {
     return {
-      timestamp: new Date().toISOString(),
-      path: request.url,
-      message: exception.message,
-      code: exception.code,
-      extensions: exception.extensions,
+      errorsMessages: exception.extensions,
     };
   }
 }

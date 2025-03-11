@@ -23,6 +23,7 @@ export class AllHttpExceptionsFilter extends BaseHttpExceptionFilter<unknown> {
   }
 
   getResponseBody(exception: unknown, request: Request): HttpResponseBody {
+    //TODO: Replace with getter from configService. will be in the following lessons
     const isProduction = this.coreConfig.getEnv === 'production';
     const status = this.getStatus(exception);
 
@@ -38,7 +39,7 @@ export class AllHttpExceptionsFilter extends BaseHttpExceptionFilter<unknown> {
 
     return {
       timestamp: new Date().toISOString(),
-      path: request.url,
+      path: request.url + 'sdaasdasdd',
       message:
         exception instanceof Error
           ? exception.message

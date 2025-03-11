@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PostsRepository } from '../infrastructure/posts.repository';
 import { InjectModel } from '@nestjs/mongoose';
 import { Post, PostModelType } from '../domain/post.entity';
@@ -12,6 +8,10 @@ import { CreateLikeDto } from '../../likes/dto/create-like.dto';
 import { LikesService } from '../../likes/application/likes.service';
 import { Types } from 'mongoose';
 import { UpdatePostInputDto } from '../api/dto/input-dto/update-post-input.dto';
+import {
+  BadRequestDomainException,
+  NotFoundDomainException,
+} from '../../../../core/exceptions/domain-exceptions';
 
 @Injectable()
 export class PostsService {
@@ -24,17 +24,12 @@ export class PostsService {
 
   async createPost(dto: CreatePostInputDto): Promise<string> {
     if (!Types.ObjectId.isValid(dto.blogId)) {
-      throw new BadRequestException([
-        {
-          message: 'incorrect blogId',
-          field: 'blogId',
-        },
-      ]);
+      throw BadRequestDomainException.create('incorrect blogId', 'blogId');
     }
 
     const blog = await this.blogsRepository.findById(dto.blogId.toString());
     if (!blog) {
-      throw new NotFoundException('blog not found');
+      throw NotFoundDomainException.create('blog not found');
     }
 
     const post = this.PostModel.createInstance({
@@ -48,17 +43,12 @@ export class PostsService {
 
   async updatePost(id: string, dto: UpdatePostInputDto): Promise<string> {
     if (!Types.ObjectId.isValid(dto.blogId)) {
-      throw new BadRequestException([
-        {
-          message: 'incorrect blogId',
-          field: 'blogId',
-        },
-      ]);
+      throw BadRequestDomainException.create('incorrect blogId', 'blogId');
     }
 
     const blog = await this.blogsRepository.findById(dto.blogId);
     if (!blog) {
-      throw new NotFoundException('blog not found');
+      throw NotFoundDomainException.create('blog not found');
     }
 
     const post = await this.postsRepository.findOrNotFoundFail(id);

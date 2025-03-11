@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Comment, CommentModelType } from '../domain/comment.entity';
 import { CommentsRepository } from '../infrastructure/comments.repository';
@@ -8,6 +8,7 @@ import { CreateCommentInServiceDto } from '../dto/create-comment.dto';
 import { UpdateCommentInServiceDto } from '../dto/update-comment.dto';
 import { CreateLikeDto } from '../../likes/dto/create-like.dto';
 import { LikesService } from '../../likes/application/likes.service';
+import { ForbiddenDomainException } from '../../../../core/exceptions/domain-exceptions';
 
 @Injectable()
 export class CommentsService {
@@ -42,7 +43,9 @@ export class CommentsService {
     await this.usersRepository.findOrNotFoundFail(dto.userId);
 
     if (dto.userId !== comment.commentatorInfo.userId.toString()) {
-      throw new ForbiddenException('you are not owner of the comment.');
+      throw ForbiddenDomainException.create(
+        'you are not owner of the comment.',
+      );
     }
 
     comment.update(dto.content);
@@ -54,7 +57,9 @@ export class CommentsService {
     const comment = await this.commentsRepository.findOrNotFoundFail(id);
 
     if (userId !== comment.commentatorInfo.userId.toString()) {
-      throw new ForbiddenException('you are not owner of the comment.');
+      throw ForbiddenDomainException.create(
+        'you are not owner of the comment.',
+      );
     }
 
     comment.makeDeleted();

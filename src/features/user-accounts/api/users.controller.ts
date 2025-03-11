@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -15,7 +14,6 @@ import { PaginatedViewDto } from '../../../core/dto/base.paginated.view-dto';
 import { UserViewDto } from './dto/view-dto/user-view.dto';
 import { UsersService } from '../application/users.service';
 import { UsersQueryRepository } from '../infrastructure/query/users.query-repository';
-import { isValidObjectId } from 'mongoose';
 import { CreateUserInputDto } from './dto/input-dto/user-input.dto';
 import { BasicAuthGuard } from '../../../core/guards/basic/basic-auth.guard';
 
@@ -47,9 +45,6 @@ export class UsersController {
   @HttpCode(204)
   @UseGuards(BasicAuthGuard)
   async delete(@Param('id') id: string) {
-    if (!isValidObjectId(id)) {
-      throw new BadRequestException('Invalid user ID format');
-    }
     await this.usersService.deleteUser(id);
     return;
   }
