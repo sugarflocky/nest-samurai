@@ -21,6 +21,8 @@ import { Response } from 'express';
 import { JwtAuthGuard } from '../../../core/guards/bearer/jwt-auth.guard';
 import { ExtractUserFromRequest } from '../../../core/guards/decorators/param/extract-user-from-request.decorator';
 import { UserContextDto } from '../../../core/guards/dto/user-context.dto';
+import { LocalAuthGuard } from '../../../core/guards/local/local-auth.guard';
+import { TokensPairDto } from '../dto/tokensPairDto';
 
 @Controller('auth')
 export class AuthController {
@@ -32,18 +34,23 @@ export class AuthController {
 
   @Post('/login')
   @HttpCode(200)
+  @UseGuards(LocalAuthGuard)
   async login(
-    @Body() loginDto: LoginInputDto,
+    @ExtractUserFromRequest() user: UserContextDto,
     @Res() res: Response,
   ): Promise<SuccessLoginViewDto> {
-    const result = await this.authService.login(loginDto);
-    //TODO: CORRECT TOKEN IN COOKIES
-    res.cookie('refreshToken', 'not.Refresh.Token', {
+    const tokens: TokensPairDto = await this.authService.createTokensPair(
+      user.id,
+    );
+
+    const { accessToken, refreshToken } = tokens;
+
+    res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: true,
     });
-    res.send(result);
-    return result;
+    res.send({ accessToken });
+    return { accessToken };
   }
 
   @Post('/registration')

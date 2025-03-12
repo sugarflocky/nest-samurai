@@ -27,7 +27,7 @@ export class CommentsQueryRepository {
     });
 
     if (!comment) {
-      throw NotFoundDomainException.create('comment not found');
+      throw NotFoundDomainException.create();
     }
 
     return this.commentsViewService.mapToView(comment, userId);

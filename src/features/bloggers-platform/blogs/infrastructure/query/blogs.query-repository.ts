@@ -20,7 +20,7 @@ export class BlogsQueryRepository {
     });
 
     if (!blog) {
-      throw NotFoundDomainException.create('blog not found');
+      throw NotFoundDomainException.create();
     }
 
     return BlogViewDto.mapToView(blog);

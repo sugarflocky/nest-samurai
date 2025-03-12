@@ -39,7 +39,7 @@ export class AllHttpExceptionsFilter extends BaseHttpExceptionFilter<unknown> {
 
     return {
       timestamp: new Date().toISOString(),
-      path: request.url + 'sdaasdasdd',
+      path: request.url,
       message:
         exception instanceof Error
           ? exception.message

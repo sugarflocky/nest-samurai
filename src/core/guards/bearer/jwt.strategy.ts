@@ -18,9 +18,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
    * функция принимает payload из jwt токена и возвращает то, что будет записано в req.user
    * @param payload
    */
-  async validate(payload: { id: string }): Promise<UserContextDto> {
+  async validate(payload: { userId: string }): Promise<UserContextDto> {
     return {
-      id: payload.id,
+      id: payload.userId,
     };
   }
 }

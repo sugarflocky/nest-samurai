@@ -25,7 +25,7 @@ export class PostsQueryRepository {
     });
 
     if (!post) {
-      throw NotFoundDomainException.create('post not found');
+      throw NotFoundDomainException.create();
     }
 
     return this.postsViewService.mapToView(post, userId);

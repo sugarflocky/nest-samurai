@@ -5,6 +5,8 @@ import { BcryptService } from './bcrypt.service';
 import { UsersRepository } from '../infrastructure/users.repository';
 import { JwtService } from '@nestjs/jwt';
 import { UnauthorizedDomainException } from '../../../core/exceptions/domain-exceptions';
+import { TokensPairDto } from '../dto/tokensPairDto';
+import { UserAccountsConfig } from '../user-accounts.config';
 
 @Injectable()
 export class AuthService {
@@ -12,6 +14,7 @@ export class AuthService {
     private bcryptService: BcryptService,
     private usersRepository: UsersRepository,
     private jwtService: JwtService,
+    private userAccountsConfig: UserAccountsConfig,
   ) {}
 
   async validateUser(loginDto: LoginInputDto): Promise<string> {
@@ -23,16 +26,27 @@ export class AuthService {
       user.password,
     );
     if (!result) {
-      throw UnauthorizedDomainException.create('Invalid login or password');
+      throw UnauthorizedDomainException.create();
     }
     return user._id.toString();
   }
 
-  async login(loginDto: LoginInputDto): Promise<SuccessLoginViewDto> {
-    const userId = await this.validateUser(loginDto);
+  async createTokensPair(userId: string): Promise<TokensPairDto> {
+    const accessToken: string = this.jwtService.sign(
+      { userId: userId },
+      {
+        secret: this.userAccountsConfig.getAccessTokenSecret,
+        expiresIn: this.userAccountsConfig.getAccessTokenExpireIn,
+      },
+    );
+    const refreshToken: string = this.jwtService.sign(
+      { userId: userId },
+      {
+        secret: this.userAccountsConfig.getRefreshTokenSecret,
+        expiresIn: this.userAccountsConfig.getRefreshTokenExpireIn,
+      },
+    );
 
-    const accessToken: string = this.jwtService.sign({ userId: userId });
-
-    return { accessToken: accessToken };
+    return { accessToken: accessToken, refreshToken: refreshToken };
   }
 }

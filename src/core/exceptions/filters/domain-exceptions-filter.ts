@@ -23,8 +23,19 @@ export class DomainHttpExceptionsFilter extends BaseHttpExceptionFilter<DomainEx
 
   // @ts-ignore
   getResponseBody(exception: DomainException) {
-    return {
-      errorsMessages: exception.extensions,
-    };
+    switch (exception.code) {
+      case DomainExceptionCode.BadRequest:
+        return {
+          errorsMessages: exception.extensions,
+        };
+      case DomainExceptionCode.Forbidden:
+        return;
+      case DomainExceptionCode.NotFound:
+        return;
+      case DomainExceptionCode.Unauthorized:
+        return;
+      default:
+        return HttpStatus.I_AM_A_TEAPOT;
+    }
   }
 }

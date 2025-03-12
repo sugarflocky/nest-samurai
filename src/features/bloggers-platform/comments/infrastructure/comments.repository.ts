@@ -26,7 +26,7 @@ export class CommentsRepository {
   async findOrNotFoundFail(id: string): Promise<CommentDocument> {
     const comment = await this.findById(id);
     if (!comment) {
-      throw NotFoundDomainException.create('comment not found');
+      throw NotFoundDomainException.create();
     }
 
     return comment;

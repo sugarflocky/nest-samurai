@@ -8,12 +8,15 @@ import { UnauthorizedDomainException } from '../../exceptions/domain-exceptions'
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy) {
   constructor(private authService: AuthService) {
-    super({ usernameField: 'login' });
+    super({ usernameField: 'loginOrEmail' });
   }
 
-  async validate(username: string, password: string): Promise<UserContextDto> {
+  async validate(
+    loginOrEmail: string,
+    password: string,
+  ): Promise<UserContextDto> {
     const user = await this.authService.validateUser({
-      loginOrEmail: username,
+      loginOrEmail: loginOrEmail,
       password: password,
     });
     if (!user) {

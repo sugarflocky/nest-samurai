@@ -43,9 +43,7 @@ export class CommentsService {
     await this.usersRepository.findOrNotFoundFail(dto.userId);
 
     if (dto.userId !== comment.commentatorInfo.userId.toString()) {
-      throw ForbiddenDomainException.create(
-        'you are not owner of the comment.',
-      );
+      throw ForbiddenDomainException.create();
     }
 
     comment.update(dto.content);
@@ -57,9 +55,7 @@ export class CommentsService {
     const comment = await this.commentsRepository.findOrNotFoundFail(id);
 
     if (userId !== comment.commentatorInfo.userId.toString()) {
-      throw ForbiddenDomainException.create(
-        'you are not owner of the comment.',
-      );
+      throw ForbiddenDomainException.create();
     }
 
     comment.makeDeleted();

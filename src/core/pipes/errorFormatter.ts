@@ -15,10 +15,8 @@ export const errorFormatter = (
 
       for (const key of constrainKeys) {
         errorsForResponse.push({
-          message: error.constraints[key]
-            ? `${error.constraints[key]}; Received value: ${error?.value}`
-            : '',
-          key: error.property,
+          message: error.constraints[key] ? `${error.constraints[key]}` : '',
+          field: error.property,
         });
       }
     }

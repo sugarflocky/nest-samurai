@@ -29,7 +29,7 @@ export class PostsService {
 
     const blog = await this.blogsRepository.findById(dto.blogId.toString());
     if (!blog) {
-      throw NotFoundDomainException.create('blog not found');
+      throw NotFoundDomainException.create();
     }
 
     const post = this.PostModel.createInstance({
@@ -48,7 +48,7 @@ export class PostsService {
 
     const blog = await this.blogsRepository.findById(dto.blogId);
     if (!blog) {
-      throw NotFoundDomainException.create('blog not found');
+      throw NotFoundDomainException.create();
     }
 
     const post = await this.postsRepository.findOrNotFoundFail(id);

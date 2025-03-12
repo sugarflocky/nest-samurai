@@ -9,7 +9,6 @@ export class UserAccountsConfig {
   refreshTokenExpireIn: string;
   accessTokenSecret: string;
   refreshTokenSecret: string;
-  jwtSecret: string;
   basicLogin: string;
   basicPassword: string;
   mailPass: string;
@@ -21,7 +20,6 @@ export class UserAccountsConfig {
     );
     this.accessTokenSecret = this.configService.get('ACCESS_TOKEN_SECRET');
     this.refreshTokenSecret = this.configService.get('REFRESH_TOKEN_SECRET');
-    this.jwtSecret = this.configService.get('JWT_SECRET');
     this.basicLogin = this.configService.get('BASIC_LOGIN');
     this.basicPassword = this.configService.get('BASIC_PASSWORD');
     this.mailPass = this.configService.get('MAIL_PASS');

@@ -21,7 +21,7 @@ export class UsersQueryRepository {
     });
 
     if (!user) {
-      throw NotFoundDomainException.create('user not found');
+      throw NotFoundDomainException.create();
     }
 
     return UserViewDto.mapToView(user);
@@ -87,7 +87,7 @@ export class UsersQueryRepository {
     });
 
     if (!user) {
-      throw NotFoundDomainException.create('user not found');
+      throw NotFoundDomainException.create();
     }
 
     return MeViewDto.mapToView(user);

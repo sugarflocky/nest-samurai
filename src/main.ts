@@ -10,6 +10,12 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const coreConfig = app.get(CoreConfig);
   appSetup(app);
+
+  const uri = coreConfig.getMongoURI;
+  const port = coreConfig.getPort;
+  console.log('DB:', uri);
+  console.log('PORT:', port);
+
   await app.listen(coreConfig.getPort);
 }
 bootstrap();

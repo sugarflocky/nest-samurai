@@ -27,7 +27,7 @@ export class UsersRepository {
     const user = await this.findById(id);
 
     if (!user) {
-      throw NotFoundDomainException.create('user not found');
+      throw NotFoundDomainException.create();
     }
 
     return user;
@@ -41,7 +41,7 @@ export class UsersRepository {
       ],
     });
     if (!user) {
-      throw UnauthorizedDomainException.create('incorrect login or password');
+      throw UnauthorizedDomainException.create();
     }
     return user;
   }

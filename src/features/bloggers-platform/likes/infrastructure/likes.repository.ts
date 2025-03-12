@@ -14,7 +14,7 @@ export class LikesRepository {
       _id: id,
     });
     if (!like) {
-      throw NotFoundDomainException.create('like not found');
+      throw NotFoundDomainException.create();
     }
 
     return like;
