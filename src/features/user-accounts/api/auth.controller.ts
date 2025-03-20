@@ -5,10 +5,8 @@ import {
   HttpCode,
   Post,
   UseGuards,
-  Request,
   Res,
 } from '@nestjs/common';
-import { LoginInputDto } from './dto/input-dto/login-input.dto';
 import { SuccessLoginViewDto } from './dto/view-dto/success-login-view.dto';
 import { AuthService } from '../application/auth.service';
 import { UsersQueryRepository } from '../infrastructure/query/users.query-repository';
