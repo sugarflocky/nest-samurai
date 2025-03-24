@@ -1,8 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Model, Types } from 'mongoose';
 import { CreateSessionDto } from '../dto/create-session.dto';
+import { UpdateSessionDto } from '../dto/update-session.dto';
 
-@Schema({ timestamps: true, _id: false })
+@Schema({ timestamps: true })
 export class Session {
   @Prop({ type: String, required: true })
   ip: string;
@@ -22,6 +23,7 @@ export class Session {
   @Prop({ type: Date, nullable: true, default: null })
   deletedAt: Date | null;
 
+  _id: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 
@@ -35,6 +37,12 @@ export class Session {
     session.issuedAt = dto.issuedAt;
 
     return session as SessionDocument;
+  }
+
+  updateSession(dto: UpdateSessionDto) {
+    this.ip = dto.ip;
+    this.title = dto.title;
+    this.issuedAt = dto.issuedAt;
   }
 
   makeDeleted() {

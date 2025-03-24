@@ -8,9 +8,7 @@ export class LikeCommentCommand {
 }
 
 @CommandHandler(LikeCommentCommand)
-export class LikeCommentsCommand
-  implements ICommandHandler<LikeCommentCommand>
-{
+export class LikeCommentUseCase implements ICommandHandler<LikeCommentCommand> {
   constructor(
     private commentsRepository: CommentsRepository,
     private likesService: LikesService,

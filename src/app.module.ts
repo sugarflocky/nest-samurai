@@ -9,6 +9,7 @@ import { AllHttpExceptionsFilter } from './core/exceptions/filters/all-exception
 import { DomainHttpExceptionsFilter } from './core/exceptions/filters/domain-exceptions-filter';
 import { CoreModule } from './core/core.module';
 import { CoreConfig } from './core/core.config';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -20,6 +21,14 @@ import { CoreConfig } from './core/core.config';
         };
       },
       inject: [CoreConfig],
+    }),
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          ttl: 10000,
+          limit: 5,
+        },
+      ],
     }),
     UserAccountsModule,
     BloggersPlatformModule,

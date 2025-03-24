@@ -1,38 +1,38 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { TokensPairDto } from '../../dto/tokensPairDto';
-import { AuthService } from '../auth.service';
-import {
-  CreateSessionDto,
-  CreateSessionInServiceDto,
-} from '../../dto/create-session.dto';
-import { Types } from 'mongoose';
+import { SessionRepository } from '../../infrastructure/session.repository';
 import { JwtService } from '@nestjs/jwt';
 import { UserAccountsConfig } from '../../user-accounts.config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Session, SessionModelType } from '../../domain/session.entity';
+import {
+  UpdateSessionDto,
+  UpdateSessionInServiceDto,
+} from '../../dto/update-session.dto';
 
-export class LoginUserCommand {
-  constructor(public dto: CreateSessionInServiceDto) {}
+export class GenerateNewRefreshTokenCommand {
+  constructor(public dto: UpdateSessionInServiceDto) {}
 }
 
-@CommandHandler(LoginUserCommand)
-export class LoginUserUseCase implements ICommandHandler<LoginUserCommand> {
+@CommandHandler(GenerateNewRefreshTokenCommand)
+export class GenerateNewRefreshTokenUseCase
+  implements ICommandHandler<GenerateNewRefreshTokenCommand>
+{
   constructor(
+    private sessionRepository: SessionRepository,
     private jwtService: JwtService,
     private userAccountsConfig: UserAccountsConfig,
     @InjectModel(Session.name) private SessionModel: SessionModelType,
   ) {}
 
-  async execute(command: LoginUserCommand): Promise<TokensPairDto> {
-    const { ip, title, userId } = command.dto;
+  async execute(
+    command: GenerateNewRefreshTokenCommand,
+  ): Promise<TokensPairDto> {
+    const dto = command.dto;
 
-    const dto: CreateSessionInServiceDto = {
-      ip: ip,
-      title: title,
-      userId: userId,
-    };
-
-    const deviceId = new Types.ObjectId().toString();
+    const session = await this.sessionRepository.findOrUnauthorized(
+      dto.deviceId,
+    );
 
     const accessToken: string = this.jwtService.sign(
       { userId: dto.userId },
@@ -42,7 +42,7 @@ export class LoginUserUseCase implements ICommandHandler<LoginUserCommand> {
       },
     );
     const refreshToken: string = this.jwtService.sign(
-      { userId: dto.userId, deviceId: deviceId },
+      { userId: dto.userId, deviceId: dto.deviceId },
       {
         secret: this.userAccountsConfig.getRefreshTokenSecret,
         expiresIn: this.userAccountsConfig.getRefreshTokenExpireIn,
@@ -52,13 +52,13 @@ export class LoginUserUseCase implements ICommandHandler<LoginUserCommand> {
     const decodedRefreshToken = this.jwtService.decode(refreshToken);
     const issuedAt: string = decodedRefreshToken.iat;
 
-    const createSessionDto: CreateSessionDto = {
-      ...dto,
-      issuedAt,
-      deviceId,
+    const updateSessionDto: UpdateSessionDto = {
+      ip: dto.ip,
+      title: dto.title,
+      issuedAt: issuedAt,
     };
 
-    const session = this.SessionModel.createInstance(createSessionDto);
+    session.updateSession(updateSessionDto);
     await session.save();
 
     return { accessToken: accessToken, refreshToken: refreshToken };

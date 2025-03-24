@@ -21,6 +21,22 @@ import {
 } from './constants/auth-token.inject-constant';
 import { SessionRepository } from './infrastructure/session.repository';
 import { Session, SessionSchema } from './domain/session.entity';
+import { ConfirmEmailUseCase } from './application/usecases/confirm-email-by-code-use-case';
+import { CreateUserUseCase } from './application/usecases/create-user-use-case';
+import {
+  DeleteUserCommand,
+  DeleteUserUseCase,
+} from './application/usecases/delete-user-use-case';
+import { LoginUserUseCase } from './application/usecases/login-user.use-case';
+import { RecoveryPasswordByCodeUseCase } from './application/usecases/recovery-password-by-code-use-case';
+import { RegisterUserUseCase } from './application/usecases/register-user-use-case';
+import { ResendEmailConfirmationCodeUseCase } from './application/usecases/resend-email-confirmation-code-use-case';
+import { SendRecoveryCodeUseCase } from './application/usecases/send-recovery-code-use-case';
+import { RefreshTokenJwtStrategy } from '../../core/guards/bearer/refresh-token-jwt.strategy';
+import { LogoutUserUseCase } from './application/usecases/logout-user.use-case';
+import { GenerateNewRefreshTokenUseCase } from './application/usecases/generate-new-refresh-token-use.case';
+import { DeleteDeviceUseCase } from './application/usecases/delete-device.use-case';
+import { DeleteOtherDevicesUseCase } from './application/usecases/delete-other-devices.use-case';
 
 dotenv.config();
 
@@ -64,6 +80,19 @@ dotenv.config();
     },
     JwtStrategy,
     LocalStrategy,
+    RefreshTokenJwtStrategy,
+    ConfirmEmailUseCase,
+    CreateUserUseCase,
+    DeleteUserUseCase,
+    LoginUserUseCase,
+    RecoveryPasswordByCodeUseCase,
+    RegisterUserUseCase,
+    ResendEmailConfirmationCodeUseCase,
+    SendRecoveryCodeUseCase,
+    LogoutUserUseCase,
+    GenerateNewRefreshTokenUseCase,
+    DeleteDeviceUseCase,
+    DeleteOtherDevicesUseCase,
   ],
   exports: [UsersRepository, JwtModule],
 })

@@ -4,7 +4,11 @@ import {
   SessionDocument,
   SessionModelType,
 } from '../domain/session.entity';
-import { UnauthorizedDomainException } from '../../../core/exceptions/domain-exceptions';
+import {
+  ForbiddenDomainException,
+  NotFoundDomainException,
+  UnauthorizedDomainException,
+} from '../../../core/exceptions/domain-exceptions';
 import { Types } from 'mongoose';
 
 export class SessionRepository {
@@ -30,5 +34,25 @@ export class SessionRepository {
 
   async save(session: SessionDocument): Promise<void> {
     await session.save();
+  }
+
+  async deleteOther(userId: string, deviceId: string): Promise<void> {
+    await this.SessionModel.deleteMany({
+      userId: new Types.ObjectId(userId),
+      deviceId: { $ne: new Types.ObjectId(deviceId) },
+    });
+  }
+
+  async deleteDevice(userId: string, deviceId: string): Promise<void> {
+    const device = await this.findByDeviceId(deviceId);
+    if (!device) {
+      throw NotFoundDomainException.create();
+    }
+
+    if (device.userId.toString() !== userId) {
+      throw ForbiddenDomainException.create();
+    }
+
+    this.SessionModel.deleteOne({ deviceId: new Types.ObjectId(deviceId) });
   }
 }
