@@ -17,6 +17,10 @@ import {
   Like,
   LikeModelType,
 } from '../bloggers-platform/likes/domain/like.entity';
+import {
+  Session,
+  SessionModelType,
+} from '../user-accounts/domain/session.entity';
 
 @Injectable()
 export class TestingService {
@@ -26,6 +30,7 @@ export class TestingService {
     @InjectModel(Post.name) private PostModel: PostModelType,
     @InjectModel(Comment.name) private CommentModel: CommentModelType,
     @InjectModel(Like.name) private LikeModel: LikeModelType,
+    @InjectModel(Session.name) private SessionModel: SessionModelType,
   ) {}
 
   async deleteAllData() {
@@ -35,6 +40,7 @@ export class TestingService {
       await this.PostModel.deleteMany({});
       await this.CommentModel.deleteMany({});
       await this.LikeModel.deleteMany({});
+      await this.SessionModel.deleteMany({});
       return true;
     } catch (error) {
       console.log(error);

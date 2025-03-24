@@ -5,7 +5,7 @@ import { UserContextDto } from '../dto/user-context.dto';
 import { UserAccountsConfig } from '../../../features/user-accounts/user-accounts.config';
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy) {
+export class AccessTokenJwtStrategy extends PassportStrategy(Strategy) {
   constructor(userAccountsConfig: UserAccountsConfig) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),

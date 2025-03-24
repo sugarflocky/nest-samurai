@@ -9,10 +9,8 @@ import { PostsController } from './posts/api/posts.controller';
 import { PostsQueryRepository } from './posts/infrastructure/query/posts.query-repository';
 import { PostsRepository } from './posts/infrastructure/posts.repository';
 import { Post, PostSchema } from './posts/domain/post.entity';
-import { PostsService } from './posts/application/posts.service';
 import { Comment, CommentSchema } from './comments/domain/comment.entity';
 import { CommentsController } from './comments/api/comments.controller';
-import { CommentsService } from './comments/application/comments.service';
 import { CommentsRepository } from './comments/infrastructure/comments.repository';
 import { CommentsQueryRepository } from './comments/infrastructure/query/comments.query-repository';
 import { UserAccountsModule } from '../user-accounts/user-accounts.module';
@@ -41,11 +39,9 @@ dotenv.config();
     BlogsService,
     BlogsRepository,
     BlogsQueryRepository,
-    PostsService,
     PostsViewService,
     PostsRepository,
     PostsQueryRepository,
-    CommentsService,
     CommentsViewService,
     CommentsRepository,
     CommentsQueryRepository,

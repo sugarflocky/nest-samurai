@@ -10,14 +10,12 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { PostsService } from '../application/posts.service';
 import { PostsQueryRepository } from '../infrastructure/query/posts.query-repository';
 import { CreatePostInputDto } from './dto/input-dto/post-input.dto';
 import { PostViewDto } from './dto/view-dto/post-view.dto';
 import { GetPostsQueryParams } from './dto/input-dto/get-posts-query-params.input-dto';
 import { PaginatedViewDto } from '../../../../core/dto/base.paginated.view-dto';
 import { CommentViewDto } from '../../comments/api/dto/view-dto/comment-view.dto';
-import { CommentsService } from '../../comments/application/comments.service';
 import { CommentsQueryRepository } from '../../comments/infrastructure/query/comments.query-repository';
 import { GetCommentsQueryParams } from '../../comments/api/dto/input-dto/get-comments-query-params-input.dto';
 import { BasicAuthGuard } from '../../../../core/guards/basic/basic-auth.guard';
@@ -29,22 +27,29 @@ import { UserContextDto } from '../../../../core/guards/dto/user-context.dto';
 import { JwtAuthGuard } from '../../../../core/guards/bearer/jwt-auth.guard';
 import { ExtractUserFromRequest } from '../../../../core/guards/decorators/param/extract-user-from-request.decorator';
 import { JwtOptionalAuthGuard } from '../../../../core/guards/bearer/jwt-optional-auth.guard';
+import { CommandBus } from '@nestjs/cqrs';
+import { CreatePostCommand } from '../application/usecases/create-post.use-case';
+import { UpdatePostCommand } from '../application/usecases/update-post.use-case';
+import { DeletePostCommand } from '../application/usecases/delete-post.use-case';
+import { LikePostCommand } from '../application/usecases/like-post.use-case';
+import { CreateCommentCommand } from '../../comments/application/usecases/create-comment.use-case';
 
 @Controller('posts')
 export class PostsController {
   constructor(
-    private readonly postsService: PostsService,
     private readonly postsQueryRepository: PostsQueryRepository,
-    private readonly commentsService: CommentsService,
     private readonly commentsQueryRepository: CommentsQueryRepository,
+    private commandBus: CommandBus,
   ) {}
 
   @Post()
   @HttpCode(201)
   @UseGuards(BasicAuthGuard)
   async create(@Body() createDto: CreatePostInputDto): Promise<PostViewDto> {
-    const id = await this.postsService.createPost(createDto);
-    return this.postsQueryRepository.getByIdOrNotFoundFail(id);
+    const postId: string = await this.commandBus.execute(
+      new CreatePostCommand(createDto),
+    );
+    return this.postsQueryRepository.getByIdOrNotFoundFail(postId);
   }
 
   @Get()
@@ -71,7 +76,7 @@ export class PostsController {
   @HttpCode(204)
   @UseGuards(BasicAuthGuard)
   async update(@Param('id') id: string, @Body() updateDto: UpdatePostInputDto) {
-    await this.postsService.updatePost(id, updateDto);
+    await this.commandBus.execute(new UpdatePostCommand(id, updateDto));
     return;
   }
 
@@ -79,8 +84,25 @@ export class PostsController {
   @HttpCode(204)
   @UseGuards(BasicAuthGuard)
   async delete(@Param('id') id: string) {
-    await this.postsService.deletePost(id);
+    await this.commandBus.execute(new DeletePostCommand(id));
     return;
+  }
+
+  @Put(':id/like-status')
+  @HttpCode(204)
+  @UseGuards(JwtAuthGuard)
+  async like(
+    @Param('id') id: string,
+    @Body() dto: LikePostInputDto,
+    @ExtractUserFromRequest() user: UserContextDto,
+  ): Promise<void> {
+    const likeDto = {
+      parentId: id,
+      status: dto.likeStatus,
+      userId: user.id,
+    };
+
+    await this.commandBus.execute(new LikePostCommand(likeDto));
   }
 
   @Get(':id/comments')
@@ -102,26 +124,16 @@ export class PostsController {
     @Body() createDto: CreateCommentInputDto,
     @ExtractUserFromRequest() user: UserContextDto,
   ): Promise<CommentViewDto> {
-    const commentId = await this.commentsService.createComment({
+    const dto = {
       ...createDto,
       postId: id,
       userId: user.id,
-    });
-    return this.commentsQueryRepository.getByIdOrNotFoundFail(commentId);
-  }
+    };
 
-  @Put(':id/like-status')
-  @HttpCode(204)
-  @UseGuards(JwtAuthGuard)
-  async like(
-    @Param('id') id: string,
-    @Body() dto: LikePostInputDto,
-    @ExtractUserFromRequest() user: UserContextDto,
-  ): Promise<void> {
-    await this.postsService.likePost({
-      parentId: id,
-      status: dto.likeStatus,
-      userId: user.id,
-    });
+    const commentId: string = await this.commandBus.execute(
+      new CreateCommentCommand(dto),
+    );
+
+    return this.commentsQueryRepository.getByIdOrNotFoundFail(commentId);
   }
 }

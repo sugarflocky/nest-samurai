@@ -1,14 +1,16 @@
-import { Injectable } from '@nestjs/common';
 import { CodeDto } from '../../dto/code.dto';
 import { BadRequestDomainException } from '../../../../core/exceptions/domain-exceptions';
 import { UsersRepository } from '../../infrastructure/users.repository';
+import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
 export class ConfirmEmailCommand {
   constructor(public dto: CodeDto) {}
 }
 
-@Injectable()
-export class ConfirmEmailUseCase {
+@CommandHandler(ConfirmEmailCommand)
+export class ConfirmEmailUseCase
+  implements ICommandHandler<ConfirmEmailCommand>
+{
   constructor(private usersRepository: UsersRepository) {}
 
   async execute(command: ConfirmEmailCommand) {

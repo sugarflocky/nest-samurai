@@ -1,17 +1,17 @@
-import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from '../../dto/create-user.dto';
 import { CryptoService } from '../crypto.service';
 import { User, UserModelType } from '../../domain/user.entity';
 import { UsersService } from '../users.service';
 import { UsersRepository } from '../../infrastructure/users.repository';
 import { InjectModel } from '@nestjs/mongoose';
+import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
 export class CreateUserCommand {
   constructor(public dto: CreateUserDto) {}
 }
 
-@Injectable()
-export class CreateUserUseCase {
+@CommandHandler(CreateUserCommand)
+export class CreateUserUseCase implements ICommandHandler<CreateUserCommand> {
   constructor(
     private cryptoService: CryptoService,
     private usersService: UsersService,

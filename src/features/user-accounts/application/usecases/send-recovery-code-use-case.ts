@@ -1,20 +1,22 @@
-import { Injectable } from '@nestjs/common';
 import { EmailDto } from '../../dto/email.dto';
 import { UsersRepository } from '../../infrastructure/users.repository';
 import { MailService } from '../mail.service';
+import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
-export class SendRecoverCodeCommand {
+export class SendRecoveryCodeCommand {
   constructor(public dto: EmailDto) {}
 }
 
-@Injectable()
-export class SendRecoveryCodeUseCase {
+@CommandHandler(SendRecoveryCodeCommand)
+export class SendRecoveryCodeUseCase
+  implements ICommandHandler<SendRecoveryCodeCommand>
+{
   constructor(
     private usersRepository: UsersRepository,
     private mailService: MailService,
   ) {}
 
-  async execute(command: SendRecoverCodeCommand) {
+  async execute(command: SendRecoveryCodeCommand) {
     const { email } = command.dto;
     const user = await this.usersRepository.findByEmail(email);
     if (!user) return;

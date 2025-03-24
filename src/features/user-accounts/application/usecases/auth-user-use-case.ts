@@ -1,13 +1,14 @@
-import { Injectable } from '@nestjs/common';
+/*
 import { AuthService } from '../auth.service';
 import { TokensPairDto } from '../../dto/tokensPairDto';
+import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
 export class AuthUserCommand {
   constructor(public userId: string) {}
 }
 
-@Injectable()
-export class AuthUserUseCase {
+@CommandHandler(AuthUserCommand)
+export class AuthUserUseCase implements ICommandHandler<AuthUserCommand> {
   constructor(private authService: AuthService) {}
 
   async execute(command: AuthUserCommand): Promise<TokensPairDto> {
@@ -19,3 +20,4 @@ export class AuthUserUseCase {
     return tokens;
   }
 }
+*/

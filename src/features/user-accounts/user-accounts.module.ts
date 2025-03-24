@@ -19,12 +19,17 @@ import {
   ACCESS_TOKEN_STRATEGY_INJECT_TOKEN,
   REFRESH_TOKEN_STRATEGY_INJECT_TOKEN,
 } from './constants/auth-token.inject-constant';
+import { SessionRepository } from './infrastructure/session.repository';
+import { Session, SessionSchema } from './domain/session.entity';
 
 dotenv.config();
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+    MongooseModule.forFeature([
+      { name: User.name, schema: UserSchema },
+      { name: Session.name, schema: SessionSchema },
+    ]),
     JwtModule,
   ],
   controllers: [UsersController, AuthController],
@@ -36,6 +41,7 @@ dotenv.config();
     CryptoService,
     MailService,
     UserAccountsConfig,
+    SessionRepository,
     {
       provide: ACCESS_TOKEN_STRATEGY_INJECT_TOKEN,
       useFactory: (userAccountConfig: UserAccountsConfig): JwtService => {

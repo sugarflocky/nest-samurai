@@ -6,11 +6,11 @@ import {
   Post,
   UseGuards,
   Res,
+  Req,
 } from '@nestjs/common';
 import { SuccessLoginViewDto } from './dto/view-dto/success-login-view.dto';
 import { UsersQueryRepository } from '../infrastructure/query/users.query-repository';
 import { RegisterInputDto } from './dto/input-dto/register-input.dto';
-import { UsersService } from '../application/users.service';
 import { CodeInputDto } from './dto/input-dto/code-input.dto';
 import { EmailInputDto } from './dto/input-dto/email-input.dto';
 import { ChangePasswordInputDto } from './dto/input-dto/change-password-input.dto';
@@ -20,12 +20,12 @@ import { ExtractUserFromRequest } from '../../../core/guards/decorators/param/ex
 import { UserContextDto } from '../../../core/guards/dto/user-context.dto';
 import { LocalAuthGuard } from '../../../core/guards/local/local-auth.guard';
 import { CommandBus } from '@nestjs/cqrs';
-import { AuthUserCommand } from '../application/usecases/auth-user-use-case';
 import { RegisterUserCommand } from '../application/usecases/register-user-use-case';
 import { ConfirmEmailCommand } from '../application/usecases/confirm-email-by-code-use-case';
-import { SendRecoverCodeCommand } from '../application/usecases/send-recovery-code-use-case';
+import { SendRecoveryCodeCommand } from '../application/usecases/send-recovery-code-use-case';
 import { RecoveryPasswordCommand } from '../application/usecases/recovery-password-by-code-use-case';
 import { ResendEmailCommand } from '../application/usecases/resend-email-confirmation-code-use-case';
+import { LoginUserCommand } from '../application/usecases/login-user.use-case';
 
 @Controller('auth')
 export class AuthController {
@@ -40,9 +40,16 @@ export class AuthController {
   async login(
     @ExtractUserFromRequest() user: UserContextDto,
     @Res() res: Response,
+    @Req() req: Request,
   ): Promise<SuccessLoginViewDto> {
+    const dto = {
+      ip: req.headers['x-forwarded-for'] || 'undefined',
+      title: req.headers['user-agent'] || 'Unnamed',
+      userId: user.id,
+    };
+
     const { accessToken, refreshToken } = await this.commandBus.execute(
-      new AuthUserCommand(user.id),
+      new LoginUserCommand(dto),
     );
 
     res.cookie('refreshToken', refreshToken, {
@@ -72,7 +79,7 @@ export class AuthController {
   @Post('/password-recovery')
   @HttpCode(204)
   async recoveryPassword(@Body() emailDto: EmailInputDto) {
-    await this.commandBus.execute(new SendRecoverCodeCommand(emailDto));
+    await this.commandBus.execute(new SendRecoveryCodeCommand(emailDto));
     return;
   }
 

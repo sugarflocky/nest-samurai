@@ -12,7 +12,6 @@ import {
 import { GetUsersQueryParams } from './dto/input-dto/get-users-query-params.input-dto';
 import { PaginatedViewDto } from '../../../core/dto/base.paginated.view-dto';
 import { UserViewDto } from './dto/view-dto/user-view.dto';
-import { UsersService } from '../application/users.service';
 import { UsersQueryRepository } from '../infrastructure/query/users.query-repository';
 import { CreateUserInputDto } from './dto/input-dto/user-input.dto';
 import { BasicAuthGuard } from '../../../core/guards/basic/basic-auth.guard';
@@ -23,7 +22,6 @@ import { DeleteUserCommand } from '../application/usecases/delete-user-use-case'
 @Controller('users')
 export class UsersController {
   constructor(
-    private readonly usersService: UsersService,
     private readonly usersQueryRepository: UsersQueryRepository,
     private commandBus: CommandBus,
   ) {}

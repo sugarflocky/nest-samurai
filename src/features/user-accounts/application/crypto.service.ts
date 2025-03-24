@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
+import { UnauthorizedDomainException } from '../../../core/exceptions/domain-exceptions';
 
 @Injectable()
 export class CryptoService {
@@ -8,8 +9,10 @@ export class CryptoService {
     return passwordHash;
   }
 
-  async compareHash(password: string, hash: string): Promise<boolean> {
+  async compareHash(password: string, hash: string): Promise<void> {
     const result = await bcrypt.compare(password, hash);
-    return result;
+    if (!result) {
+      throw UnauthorizedDomainException.create();
+    }
   }
 }
