@@ -8,7 +8,6 @@ import {
   Res,
 } from '@nestjs/common';
 import { SuccessLoginViewDto } from './dto/view-dto/success-login-view.dto';
-import { AuthService } from '../application/auth.service';
 import { UsersQueryRepository } from '../infrastructure/query/users.query-repository';
 import { RegisterInputDto } from './dto/input-dto/register-input.dto';
 import { UsersService } from '../application/users.service';
@@ -20,14 +19,19 @@ import { JwtAuthGuard } from '../../../core/guards/bearer/jwt-auth.guard';
 import { ExtractUserFromRequest } from '../../../core/guards/decorators/param/extract-user-from-request.decorator';
 import { UserContextDto } from '../../../core/guards/dto/user-context.dto';
 import { LocalAuthGuard } from '../../../core/guards/local/local-auth.guard';
-import { TokensPairDto } from '../dto/tokensPairDto';
+import { CommandBus } from '@nestjs/cqrs';
+import { AuthUserCommand } from '../application/usecases/auth-user-use-case';
+import { RegisterUserCommand } from '../application/usecases/register-user-use-case';
+import { ConfirmEmailCommand } from '../application/usecases/confirm-email-by-code-use-case';
+import { SendRecoverCodeCommand } from '../application/usecases/send-recovery-code-use-case';
+import { RecoveryPasswordCommand } from '../application/usecases/recovery-password-by-code-use-case';
+import { ResendEmailCommand } from '../application/usecases/resend-email-confirmation-code-use-case';
 
 @Controller('auth')
 export class AuthController {
   constructor(
-    private authService: AuthService,
     private usersQueryRepository: UsersQueryRepository,
-    private usersService: UsersService,
+    private commandBus: CommandBus,
   ) {}
 
   @Post('/login')
@@ -37,11 +41,9 @@ export class AuthController {
     @ExtractUserFromRequest() user: UserContextDto,
     @Res() res: Response,
   ): Promise<SuccessLoginViewDto> {
-    const tokens: TokensPairDto = await this.authService.createTokensPair(
-      user.id,
+    const { accessToken, refreshToken } = await this.commandBus.execute(
+      new AuthUserCommand(user.id),
     );
-
-    const { accessToken, refreshToken } = tokens;
 
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
@@ -54,35 +56,39 @@ export class AuthController {
   @Post('/registration')
   @HttpCode(204)
   async register(@Body() registerDto: RegisterInputDto) {
-    const userId = await this.usersService.registerUser(registerDto);
+    const userId: string = await this.commandBus.execute(
+      new RegisterUserCommand(registerDto),
+    );
     return this.usersQueryRepository.getByIdOrNotFoundFail(userId);
   }
 
   @Post('/registration-confirmation')
   @HttpCode(204)
   async confirmEmail(@Body() code: CodeInputDto) {
-    await this.usersService.confirmEmail(code);
+    await this.commandBus.execute(new ConfirmEmailCommand(code));
     return;
   }
 
   @Post('/password-recovery')
   @HttpCode(204)
   async recoveryPassword(@Body() emailDto: EmailInputDto) {
-    await this.usersService.recoveryPassword(emailDto);
+    await this.commandBus.execute(new SendRecoverCodeCommand(emailDto));
     return;
   }
 
   @Post('/new-password')
   @HttpCode(204)
   async changePassword(@Body() changePasswordDto: ChangePasswordInputDto) {
-    await this.usersService.changePassword(changePasswordDto);
+    await this.commandBus.execute(
+      new RecoveryPasswordCommand(changePasswordDto),
+    );
     return;
   }
 
   @Post('/registration-email-resending')
   @HttpCode(204)
   async resendEmail(@Body() email: EmailInputDto) {
-    await this.usersService.resendEmail(email);
+    await this.commandBus.execute(new ResendEmailCommand(email));
     return;
   }
 

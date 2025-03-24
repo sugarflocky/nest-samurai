@@ -16,19 +16,25 @@ import { UsersService } from '../application/users.service';
 import { UsersQueryRepository } from '../infrastructure/query/users.query-repository';
 import { CreateUserInputDto } from './dto/input-dto/user-input.dto';
 import { BasicAuthGuard } from '../../../core/guards/basic/basic-auth.guard';
+import { CommandBus } from '@nestjs/cqrs';
+import { CreateUserCommand } from '../application/usecases/create-user-use-case';
+import { DeleteUserCommand } from '../application/usecases/delete-user-use-case';
 
 @Controller('users')
 export class UsersController {
   constructor(
     private readonly usersService: UsersService,
     private readonly usersQueryRepository: UsersQueryRepository,
+    private commandBus: CommandBus,
   ) {}
 
   @Post()
   @HttpCode(201)
   @UseGuards(BasicAuthGuard)
   async create(@Body() createDto: CreateUserInputDto): Promise<UserViewDto> {
-    const id = await this.usersService.createUser(createDto);
+    const id: string = await this.commandBus.execute(
+      new CreateUserCommand(createDto),
+    );
     return this.usersQueryRepository.getByIdOrNotFoundFail(id);
   }
 
@@ -45,7 +51,7 @@ export class UsersController {
   @HttpCode(204)
   @UseGuards(BasicAuthGuard)
   async delete(@Param('id') id: string) {
-    await this.usersService.deleteUser(id);
+    await this.commandBus.execute(new DeleteUserCommand(id));
     return;
   }
 }

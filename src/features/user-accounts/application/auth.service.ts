@@ -1,35 +1,20 @@
 import { Injectable } from '@nestjs/common';
-import { SuccessLoginViewDto } from '../api/dto/view-dto/success-login-view.dto';
-import { LoginInputDto } from '../api/dto/input-dto/login-input.dto';
-import { BcryptService } from './bcrypt.service';
-import { UsersRepository } from '../infrastructure/users.repository';
 import { JwtService } from '@nestjs/jwt';
-import { UnauthorizedDomainException } from '../../../core/exceptions/domain-exceptions';
 import { TokensPairDto } from '../dto/tokensPairDto';
 import { UserAccountsConfig } from '../user-accounts.config';
+import { UnauthorizedDomainException } from '../../../core/exceptions/domain-exceptions';
+import { LoginUserDto } from '../dto/login-user.dto';
+import { UsersRepository } from '../infrastructure/users.repository';
+import { CryptoService } from './crypto.service';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private bcryptService: BcryptService,
-    private usersRepository: UsersRepository,
     private jwtService: JwtService,
     private userAccountsConfig: UserAccountsConfig,
+    private usersRepository: UsersRepository,
+    private cryptoService: CryptoService,
   ) {}
-
-  async validateUser(loginDto: LoginInputDto): Promise<string> {
-    const { loginOrEmail, password } = loginDto;
-    const user = await this.usersRepository.findByLoginOrEmail(loginOrEmail);
-
-    const result = await this.bcryptService.compareHash(
-      password,
-      user.password,
-    );
-    if (!result) {
-      throw UnauthorizedDomainException.create();
-    }
-    return user._id.toString();
-  }
 
   async createTokensPair(userId: string): Promise<TokensPairDto> {
     const accessToken: string = this.jwtService.sign(
@@ -48,5 +33,20 @@ export class AuthService {
     );
 
     return { accessToken: accessToken, refreshToken: refreshToken };
+  }
+
+  async validateUser(dto: LoginUserDto): Promise<string> {
+    const { loginOrEmail, password } = dto;
+
+    const user = await this.usersRepository.findByLoginOrEmail(loginOrEmail);
+
+    const result = await this.cryptoService.compareHash(
+      password,
+      user.password,
+    );
+    if (!result) {
+      throw UnauthorizedDomainException.create();
+    }
+    return user._id.toString();
   }
 }
