@@ -37,6 +37,8 @@ import { LogoutUserUseCase } from './application/usecases/logout-user.use-case';
 import { GenerateNewRefreshTokenUseCase } from './application/usecases/generate-new-refresh-token-use.case';
 import { DeleteDeviceUseCase } from './application/usecases/delete-device.use-case';
 import { DeleteOtherDevicesUseCase } from './application/usecases/delete-other-devices.use-case';
+import { DevicesController } from './api/devices-controller';
+import { DevicesQueryRepository } from './infrastructure/query/devices.query-repository';
 
 dotenv.config();
 
@@ -48,7 +50,7 @@ dotenv.config();
     ]),
     JwtModule,
   ],
-  controllers: [UsersController, AuthController],
+  controllers: [UsersController, AuthController, DevicesController],
   providers: [
     UsersService,
     UsersRepository,
@@ -58,6 +60,7 @@ dotenv.config();
     MailService,
     UserAccountsConfig,
     SessionRepository,
+    DevicesQueryRepository,
     {
       provide: ACCESS_TOKEN_STRATEGY_INJECT_TOKEN,
       useFactory: (userAccountConfig: UserAccountsConfig): JwtService => {

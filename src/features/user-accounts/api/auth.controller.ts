@@ -40,14 +40,14 @@ export class AuthController {
 
   @Post('/login')
   @HttpCode(200)
-  @UseGuards(LocalAuthGuard, ThrottlerGuard)
+  @UseGuards(ThrottlerGuard, LocalAuthGuard)
   async login(
     @ExtractUserFromRequest() user: UserContextDto,
     @Res() res: Response,
     @Req() req: Request,
   ): Promise<SuccessLoginViewDto> {
     const dto = {
-      ip: req.headers['x-forwarded-for'] || 'undefined',
+      ip: req.headers['x-forwarded-for'] || 'Unknown',
       title: req.headers['user-agent'] || 'Unnamed',
       userId: user.id,
     };
@@ -60,8 +60,6 @@ export class AuthController {
       httpOnly: true,
       secure: true,
     });
-
-    console.log(refreshToken);
 
     res.send({ accessToken });
     return { accessToken };
@@ -141,8 +139,6 @@ export class AuthController {
       httpOnly: true,
       secure: true,
     });
-
-    console.log(refreshToken);
 
     res.send({ accessToken });
     return { accessToken };

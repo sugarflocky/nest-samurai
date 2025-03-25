@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { SessionViewDto } from '../../api/dto/view-dto/session-view.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Session, SessionModelType } from '../../domain/session.entity';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class DevicesQueryRepository {
@@ -11,7 +12,7 @@ export class DevicesQueryRepository {
 
   async getAll(userId: string): Promise<SessionViewDto[]> {
     const sessions = await this.SessionModel.find({
-      userId: userId,
+      userId: new Types.ObjectId(userId),
       deletedAt: null,
     });
 

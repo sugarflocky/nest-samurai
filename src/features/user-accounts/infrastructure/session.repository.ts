@@ -53,6 +53,8 @@ export class SessionRepository {
       throw ForbiddenDomainException.create();
     }
 
-    this.SessionModel.deleteOne({ deviceId: new Types.ObjectId(deviceId) });
+    await this.SessionModel.deleteOne({
+      deviceId: new Types.ObjectId(deviceId),
+    });
   }
 }

@@ -11,7 +11,7 @@ export class SessionViewDto {
 
     dto.ip = session.ip;
     dto.title = session.title;
-    dto.lastActiveDate = new Date(+session.issuedAt * 1000);
+    dto.lastActiveDate = session.updatedAt;
     dto.deviceId = session.deviceId.toString();
 
     return dto;
