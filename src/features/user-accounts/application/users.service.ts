@@ -15,8 +15,8 @@ export class UsersService {
   ) {}
 
   async testUnique(login: string, email: string) {
-    const loginTest = await this.usersRepository.findByLogin(login);
-    const emailTest = await this.usersRepository.findByEmail(email);
+    const loginTest = await this.usersRepository.selectByLogin(login);
+    const emailTest = await this.usersRepository.selectByEmail(email);
     if (emailTest || loginTest) {
       const errorsMessages: ErrorExtension[] = [];
       if (emailTest) {

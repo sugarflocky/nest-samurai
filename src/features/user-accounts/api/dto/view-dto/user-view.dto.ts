@@ -9,9 +9,9 @@ export class UserViewDto {
   static mapToView(user: UserDocument): UserViewDto {
     const dto = new UserViewDto();
 
-    dto.email = user.email;
+    dto.id = user.id;
     dto.login = user.login;
-    dto.id = user._id.toString();
+    dto.email = user.email;
     dto.createdAt = user.createdAt;
 
     return dto;

@@ -1,46 +1,24 @@
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { User, UserModelType } from '../user-accounts/domain/user.entity';
-import {
-  Blog,
-  BlogModelType,
-} from '../bloggers-platform/blogs/domain/blog.entity';
-import {
-  Post,
-  PostModelType,
-} from '../bloggers-platform/posts/domain/post.entity';
-import {
-  Comment,
-  CommentModelType,
-} from '../bloggers-platform/comments/domain/comment.entity';
-import {
-  Like,
-  LikeModelType,
-} from '../bloggers-platform/likes/domain/like.entity';
-import {
-  Session,
-  SessionModelType,
-} from '../user-accounts/domain/session.entity';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class TestingService {
-  constructor(
-    @InjectModel(User.name) private UserModel: UserModelType,
-    @InjectModel(Blog.name) private BlogModel: BlogModelType,
-    @InjectModel(Post.name) private PostModel: PostModelType,
-    @InjectModel(Comment.name) private CommentModel: CommentModelType,
-    @InjectModel(Like.name) private LikeModel: LikeModelType,
-    @InjectModel(Session.name) private SessionModel: SessionModelType,
-  ) {}
+  constructor(@InjectDataSource() private dataSource: DataSource) {}
 
   async deleteAllData() {
     try {
-      await this.UserModel.deleteMany({});
-      await this.BlogModel.deleteMany({});
-      await this.PostModel.deleteMany({});
-      await this.CommentModel.deleteMany({});
-      await this.LikeModel.deleteMany({});
-      await this.SessionModel.deleteMany({});
+      await this.dataSource.query(`
+      DO $$ 
+DECLARE 
+    r RECORD; 
+BEGIN 
+    FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') 
+    LOOP 
+        EXECUTE 'TRUNCATE TABLE ' || quote_ident(r.tablename) || ' CASCADE'; 
+    END LOOP; 
+END $$;
+`);
       return true;
     } catch (error) {
       console.log(error);

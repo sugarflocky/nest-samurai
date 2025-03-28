@@ -19,7 +19,7 @@ import { CommandBus } from '@nestjs/cqrs';
 import { CreateUserCommand } from '../application/usecases/create-user-use-case';
 import { DeleteUserCommand } from '../application/usecases/delete-user-use-case';
 
-@Controller('users')
+@Controller('sa/users')
 export class UsersController {
   constructor(
     private readonly usersQueryRepository: UsersQueryRepository,
@@ -33,7 +33,7 @@ export class UsersController {
     const id: string = await this.commandBus.execute(
       new CreateUserCommand(createDto),
     );
-    return this.usersQueryRepository.getByIdOrNotFoundFail(id);
+    return this.usersQueryRepository.selectByIdOrNotFound(id);
   }
 
   @Get()
@@ -42,7 +42,7 @@ export class UsersController {
   async getAll(
     @Query() query: GetUsersQueryParams,
   ): Promise<PaginatedViewDto<UserViewDto[]>> {
-    return this.usersQueryRepository.getAll(query);
+    return this.usersQueryRepository.selectAll(query);
   }
 
   @Delete(':id')

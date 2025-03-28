@@ -2,6 +2,8 @@ export class UpdateSessionDto {
   ip: string;
   title: string;
   issuedAt: string;
+  userId: string;
+  deviceId: string;
 }
 
 export class UpdateSessionInServiceDto {

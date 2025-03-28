@@ -5,9 +5,11 @@ import { UsersService } from '../users.service';
 import { UsersRepository } from '../../infrastructure/users.repository';
 import { InjectModel } from '@nestjs/mongoose';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { v4 as uuidv4 } from 'uuid';
+import { CreateUserInputDto } from '../../api/dto/input-dto/user-input.dto';
 
 export class CreateUserCommand {
-  constructor(public dto: CreateUserDto) {}
+  constructor(public dto: CreateUserInputDto) {}
 }
 
 @CommandHandler(CreateUserCommand)
@@ -16,7 +18,6 @@ export class CreateUserUseCase implements ICommandHandler<CreateUserCommand> {
     private cryptoService: CryptoService,
     private usersService: UsersService,
     private usersRepository: UsersRepository,
-    @InjectModel(User.name) private UserModel: UserModelType,
   ) {}
 
   async execute(command: CreateUserCommand): Promise<string> {
@@ -26,14 +27,19 @@ export class CreateUserUseCase implements ICommandHandler<CreateUserCommand> {
 
     const passwordHash = await this.cryptoService.generateHash(dto.password);
 
-    const user = this.UserModel.createInstance({
-      email: dto.email,
+    const createUserDto: CreateUserDto = {
+      id: uuidv4(),
       login: dto.login,
       password: passwordHash,
-    });
+      email: dto.email,
+      createdAt: new Date(),
+      deletedAt: null,
+      code: null,
+      expirationDate: null,
+      isConfirmed: true,
+    };
 
-    user.confirmEmail();
-    await this.usersRepository.save(user);
-    return user._id.toString();
+    await this.usersRepository.create(createUserDto);
+    return createUserDto.id;
   }
 }

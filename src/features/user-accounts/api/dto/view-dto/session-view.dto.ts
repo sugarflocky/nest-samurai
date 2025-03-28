@@ -6,13 +6,13 @@ export class SessionViewDto {
   lastActiveDate: Date;
   deviceId: string;
 
-  static mapToView(session: SessionDocument): SessionViewDto {
+  static mapToView(session): SessionViewDto {
     const dto = new SessionViewDto();
 
     dto.ip = session.ip;
     dto.title = session.title;
-    dto.lastActiveDate = session.updatedAt;
-    dto.deviceId = session.deviceId.toString();
+    dto.lastActiveDate = new Date(session.issuedAt * 1000);
+    dto.deviceId = session.deviceId;
 
     return dto;
   }

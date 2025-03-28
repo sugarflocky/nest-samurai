@@ -6,6 +6,9 @@ import { CryptoService } from '../crypto.service';
 import { MailService } from '../mail.service';
 import { InjectModel } from '@nestjs/mongoose';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { CreateUserDto } from '../../dto/create-user.dto';
+import { v4 as uuidv4 } from 'uuid';
+import { add } from 'date-fns';
 
 export class RegisterUserCommand {
   constructor(public dto: RegisterUserDto) {}
@@ -20,7 +23,6 @@ export class RegisterUserUseCase
     private usersRepository: UsersRepository,
     private cryptoService: CryptoService,
     private mailService: MailService,
-    @InjectModel(User.name) private UserModel: UserModelType,
   ) {}
 
   async execute(command: RegisterUserCommand): Promise<string> {
@@ -29,15 +31,21 @@ export class RegisterUserUseCase
     await this.usersService.testUnique(dto.login, dto.email);
     const passwordHash = await this.cryptoService.generateHash(dto.password);
 
-    const user = this.UserModel.createInstance({
-      email: dto.email,
+    const createUserDto: CreateUserDto = {
+      id: uuidv4(),
       login: dto.login,
       password: passwordHash,
-    });
+      email: dto.email,
+      createdAt: new Date(),
+      deletedAt: null,
+      code: uuidv4(),
+      expirationDate: add(new Date(), { hours: 24 }),
+      isConfirmed: false,
+    };
 
-    await this.usersRepository.save(user);
+    await this.usersRepository.create(createUserDto);
 
-    this.mailService.sendCode(user.email, user.emailConfirmation.code);
-    return user._id.toString();
+    this.mailService.sendCode(createUserDto.email, createUserDto.code!);
+    return createUserDto.id;
   }
 }

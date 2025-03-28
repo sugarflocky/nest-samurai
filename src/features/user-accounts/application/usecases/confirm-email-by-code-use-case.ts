@@ -1,7 +1,7 @@
 import { CodeDto } from '../../dto/code.dto';
-import { BadRequestDomainException } from '../../../../core/exceptions/domain-exceptions';
 import { UsersRepository } from '../../infrastructure/users.repository';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { BadRequestDomainException } from '../../../../core/exceptions/domain-exceptions';
 
 export class ConfirmEmailCommand {
   constructor(public dto: CodeDto) {}
@@ -15,21 +15,26 @@ export class ConfirmEmailUseCase
 
   async execute(command: ConfirmEmailCommand) {
     const { code } = command.dto;
-    const user = await this.usersRepository.findOrBadRequestByEmailCode(code);
+    const codeData = await this.usersRepository.selectByEmailCode(code);
+    if (!codeData) {
+      throw BadRequestDomainException.create(
+        'confirmation code is incorrect, expired or already been applied',
+        'code',
+      );
+    }
+    if (codeData.expirationDate < new Date()) {
+      throw BadRequestDomainException.create(
+        'confirmation code is incorrect, expired or already been applied',
+        'code',
+      );
+    }
+    if (codeData.isConfirmed === true) {
+      throw BadRequestDomainException.create(
+        'confirmation code is incorrect, expired or already been applied',
+        'code',
+      );
+    }
 
-    if (user.emailConfirmation.isConfirmed) {
-      throw BadRequestDomainException.create(
-        'recovery code is incorrect, expired or already been applied',
-        'code',
-      );
-    }
-    if (user.emailConfirmation.expirationDate < new Date()) {
-      throw BadRequestDomainException.create(
-        'recovery code is incorrect, expired or already been applied',
-        'code',
-      );
-    }
-    user.confirmEmail();
-    await this.usersRepository.save(user);
+    await this.usersRepository.confirmEmail(codeData.userId);
   }
 }

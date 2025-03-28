@@ -23,10 +23,7 @@ import { SessionRepository } from './infrastructure/session.repository';
 import { Session, SessionSchema } from './domain/session.entity';
 import { ConfirmEmailUseCase } from './application/usecases/confirm-email-by-code-use-case';
 import { CreateUserUseCase } from './application/usecases/create-user-use-case';
-import {
-  DeleteUserCommand,
-  DeleteUserUseCase,
-} from './application/usecases/delete-user-use-case';
+import { DeleteUserUseCase } from './application/usecases/delete-user-use-case';
 import { LoginUserUseCase } from './application/usecases/login-user.use-case';
 import { RecoveryPasswordByCodeUseCase } from './application/usecases/recovery-password-by-code-use-case';
 import { RegisterUserUseCase } from './application/usecases/register-user-use-case';
@@ -49,6 +46,8 @@ dotenv.config();
       { name: Session.name, schema: SessionSchema },
     ]),
     JwtModule,
+    //TypeOrmModule.forFeature([User]),
+    //TypeOrmModule.forFeature([Session]),
   ],
   controllers: [UsersController, AuthController, DevicesController],
   providers: [

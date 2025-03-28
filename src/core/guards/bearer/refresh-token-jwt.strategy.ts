@@ -40,7 +40,8 @@ export class RefreshTokenJwtStrategy extends PassportStrategy(
   }): Promise<UserContextDto> {
     const { userId, iat, deviceId } = payload;
 
-    const session = await this.sessionRepository.findOrUnauthorized(deviceId);
+    const session = await this.sessionRepository.selectOrUnauthorized(deviceId);
+
     if (
       iat.toString() !== session.issuedAt ||
       deviceId !== session.deviceId.toString() ||

@@ -1,5 +1,7 @@
 import { UsersRepository } from '../../infrastructure/users.repository';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 export class DeleteUserCommand {
   constructor(public userId: string) {}
@@ -7,15 +9,12 @@ export class DeleteUserCommand {
 
 @CommandHandler(DeleteUserCommand)
 export class DeleteUserUseCase implements ICommandHandler<DeleteUserCommand> {
-  constructor(private usersRepository: UsersRepository) {}
+  constructor(
+    private usersRepository: UsersRepository,
+    @InjectDataSource() private dataSource: DataSource,
+  ) {}
 
   async execute(command: DeleteUserCommand): Promise<void> {
-    const userId = command.userId;
-
-    const user = await this.usersRepository.findOrNotFoundFail(userId);
-
-    user.makeDeleted();
-
-    await this.usersRepository.save(user);
+    await this.usersRepository.delete(command.userId);
   }
 }

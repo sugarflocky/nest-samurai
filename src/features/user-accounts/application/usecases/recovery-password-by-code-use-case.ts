@@ -19,13 +19,18 @@ export class RecoveryPasswordByCodeUseCase
   async execute(command: RecoveryPasswordCommand) {
     const dto = command.dto;
 
-    const user = await this.usersRepository.findOrBadRequestByRecoveryCode(
+    const password = await this.cryptoService.generateHash(dto.newPassword);
+
+    const userId = await this.usersRepository.selectByRecoveryCodeOrBadRequest(
       dto.recoveryCode,
     );
 
-    const password = await this.cryptoService.generateHash(dto.newPassword);
+    const recoveryDto = {
+      userId: userId,
+      password: password,
+      recoveryCode: dto.recoveryCode,
+    };
 
-    user.changePassword(password);
-    await this.usersRepository.save(user);
+    await this.usersRepository.useRecoveryCode(recoveryDto);
   }
 }

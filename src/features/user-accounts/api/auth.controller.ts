@@ -72,7 +72,7 @@ export class AuthController {
     const userId: string = await this.commandBus.execute(
       new RegisterUserCommand(registerDto),
     );
-    return this.usersQueryRepository.getByIdOrNotFoundFail(userId);
+    return this.usersQueryRepository.selectByIdOrNotFound(userId);
   }
 
   @Post('/registration-confirmation')
@@ -113,7 +113,9 @@ export class AuthController {
   @UseGuards(RefreshTokenAuthGuard)
   @HttpCode(204)
   async logout(@ExtractUserFromRequest() user: UserContextDto) {
-    await this.commandBus.execute(new LogoutUserCommand(user.deviceId!));
+    await this.commandBus.execute(
+      new LogoutUserCommand(user.deviceId!, user.id),
+    );
   }
 
   @Post('/refresh-token')
@@ -148,6 +150,6 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @HttpCode(200)
   async me(@ExtractUserFromRequest() user: UserContextDto) {
-    return this.usersQueryRepository.getUserByAccessToken(user.id);
+    return this.usersQueryRepository.selectByIdAndMapToMeView(user.id);
   }
 }

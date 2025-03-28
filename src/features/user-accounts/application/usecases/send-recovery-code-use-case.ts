@@ -2,6 +2,8 @@ import { EmailDto } from '../../dto/email.dto';
 import { UsersRepository } from '../../infrastructure/users.repository';
 import { MailService } from '../mail.service';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { v4 as uuidv4 } from 'uuid';
+import { add } from 'date-fns';
 
 export class SendRecoveryCodeCommand {
   constructor(public dto: EmailDto) {}
@@ -18,12 +20,17 @@ export class SendRecoveryCodeUseCase
 
   async execute(command: SendRecoveryCodeCommand) {
     const { email } = command.dto;
-    const user = await this.usersRepository.findByEmail(email);
+    const user = await this.usersRepository.selectByEmail(email);
     if (!user) return;
 
-    user.recoveryPassword();
+    const recoveryDto = {
+      userId: user.id,
+      code: uuidv4(),
+      expirationDate: add(new Date(), { minutes: 30 }),
+    };
 
-    this.mailService.sendRecoveryCode(user.email, user.passwordRecovery!.code);
-    await this.usersRepository.save(user);
+    await this.usersRepository.updateRecoveryCode(recoveryDto);
+
+    this.mailService.sendRecoveryCode(user.email, recoveryDto.code);
   }
 }

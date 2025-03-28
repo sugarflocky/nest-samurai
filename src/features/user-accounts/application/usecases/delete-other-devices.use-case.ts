@@ -16,6 +16,6 @@ export class DeleteOtherDevicesUseCase
 
   async execute(command: DeleteOtherDevicesCommand): Promise<void> {
     const { userId, deviceId } = command;
-    await this.sessionRepository.deleteOther(userId, deviceId);
+    await this.sessionRepository.deleteOtherDevices(deviceId, userId);
   }
 }

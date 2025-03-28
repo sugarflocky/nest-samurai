@@ -1,15 +1,13 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { TokensPairDto } from '../../dto/tokensPairDto';
-import { AuthService } from '../auth.service';
 import {
   CreateSessionDto,
   CreateSessionInServiceDto,
 } from '../../dto/create-session.dto';
-import { Types } from 'mongoose';
+import { v4 as uuidv4 } from 'uuid';
 import { JwtService } from '@nestjs/jwt';
 import { UserAccountsConfig } from '../../user-accounts.config';
-import { InjectModel } from '@nestjs/mongoose';
-import { Session, SessionModelType } from '../../domain/session.entity';
+import { SessionRepository } from '../../infrastructure/session.repository';
 
 export class LoginUserCommand {
   constructor(public dto: CreateSessionInServiceDto) {}
@@ -20,7 +18,7 @@ export class LoginUserUseCase implements ICommandHandler<LoginUserCommand> {
   constructor(
     private jwtService: JwtService,
     private userAccountsConfig: UserAccountsConfig,
-    @InjectModel(Session.name) private SessionModel: SessionModelType,
+    private sessionRepository: SessionRepository,
   ) {}
 
   async execute(command: LoginUserCommand): Promise<TokensPairDto> {
@@ -32,7 +30,7 @@ export class LoginUserUseCase implements ICommandHandler<LoginUserCommand> {
       userId: userId,
     };
 
-    const deviceId = new Types.ObjectId().toString();
+    const deviceId = uuidv4();
 
     const accessToken: string = this.jwtService.sign(
       { userId: dto.userId },
@@ -53,13 +51,16 @@ export class LoginUserUseCase implements ICommandHandler<LoginUserCommand> {
     const issuedAt: string = decodedRefreshToken.iat;
 
     const createSessionDto: CreateSessionDto = {
-      ...dto,
-      issuedAt,
-      deviceId,
+      deviceId: deviceId,
+      userId: dto.userId,
+      ip: dto.ip,
+      title: dto.title,
+      issuedAt: issuedAt,
+      createdAt: new Date(),
+      deletedAt: null,
     };
 
-    const session = this.SessionModel.createInstance(createSessionDto);
-    await session.save();
+    await this.sessionRepository.create(createSessionDto);
 
     return { accessToken: accessToken, refreshToken: refreshToken };
   }

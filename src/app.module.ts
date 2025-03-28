@@ -10,9 +10,21 @@ import { DomainHttpExceptionsFilter } from './core/exceptions/filters/domain-exc
 import { CoreModule } from './core/core.module';
 import { CoreConfig } from './core/core.config';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
   imports: [
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      host: 'localhost',
+      port: 5432,
+      username: 'postgres',
+      password: 'sa',
+      database: 'samurai',
+      autoLoadEntities: false,
+      synchronize: false,
+    }),
+
     MongooseModule.forRootAsync({
       useFactory: (coreConfig: CoreConfig) => {
         const uri = coreConfig.getMongoURI;

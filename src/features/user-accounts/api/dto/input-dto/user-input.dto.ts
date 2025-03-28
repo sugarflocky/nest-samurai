@@ -1,4 +1,3 @@
-import { CreateUserDto } from '../../../dto/create-user.dto';
 import {
   IsEmail,
   IsNotEmpty,
@@ -8,7 +7,7 @@ import {
 } from 'class-validator';
 import { Trim } from '../../../../../core/decorators/transform/trim';
 
-export class CreateUserInputDto implements CreateUserDto {
+export class CreateUserInputDto {
   @Trim()
   @IsString()
   @IsNotEmpty()

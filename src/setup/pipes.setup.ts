@@ -1,12 +1,12 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { BadRequestDomainException } from '../core/exceptions/domain-exceptions';
 import { errorFormatter } from '../core/pipes/errorFormatter';
-import { ObjectIdValidationTransformationPipe } from '../core/pipes/object-id-validation-transformation-pipe';
+import { UuidValidationPipe } from '../core/pipes/uuid-validation-pipe';
 
 export function pipesSetup(app: INestApplication) {
   //Глобальный пайп для валидации и трансформации входящих данных.
   app.useGlobalPipes(
-    new ObjectIdValidationTransformationPipe(),
+    new UuidValidationPipe(),
     new ValidationPipe({
       //class-transformer создает экземпляр dto
       //соответственно применятся значения по-умолчанию

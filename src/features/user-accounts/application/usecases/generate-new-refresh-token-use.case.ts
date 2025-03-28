@@ -3,8 +3,6 @@ import { TokensPairDto } from '../../dto/tokensPairDto';
 import { SessionRepository } from '../../infrastructure/session.repository';
 import { JwtService } from '@nestjs/jwt';
 import { UserAccountsConfig } from '../../user-accounts.config';
-import { InjectModel } from '@nestjs/mongoose';
-import { Session, SessionModelType } from '../../domain/session.entity';
 import {
   UpdateSessionDto,
   UpdateSessionInServiceDto,
@@ -22,7 +20,6 @@ export class GenerateNewRefreshTokenUseCase
     private sessionRepository: SessionRepository,
     private jwtService: JwtService,
     private userAccountsConfig: UserAccountsConfig,
-    @InjectModel(Session.name) private SessionModel: SessionModelType,
   ) {}
 
   async execute(
@@ -30,7 +27,7 @@ export class GenerateNewRefreshTokenUseCase
   ): Promise<TokensPairDto> {
     const dto = command.dto;
 
-    const session = await this.sessionRepository.findOrUnauthorized(
+    const session = await this.sessionRepository.selectOrUnauthorized(
       dto.deviceId,
     );
 
@@ -56,10 +53,11 @@ export class GenerateNewRefreshTokenUseCase
       ip: dto.ip,
       title: dto.title,
       issuedAt: issuedAt,
+      userId: dto.userId,
+      deviceId: dto.deviceId,
     };
 
-    session.updateSession(updateSessionDto);
-    await session.save();
+    await this.sessionRepository.update(updateSessionDto);
 
     return { accessToken: accessToken, refreshToken: refreshToken };
   }

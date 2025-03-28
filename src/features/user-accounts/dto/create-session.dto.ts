@@ -4,6 +4,8 @@ export class CreateSessionDto {
   issuedAt: string;
   userId: string;
   deviceId: string;
+  createdAt: Date;
+  deletedAt: Date | null;
 }
 
 export class CreateSessionInServiceDto {

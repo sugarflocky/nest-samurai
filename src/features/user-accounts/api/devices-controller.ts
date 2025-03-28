@@ -28,7 +28,7 @@ export class DevicesController {
   async getAll(
     @ExtractUserFromRequest() user: UserContextDto,
   ): Promise<SessionViewDto[]> {
-    return this.devicesQueryRepository.getAll(user.id);
+    return this.devicesQueryRepository.selectAll(user.id);
   }
 
   @Delete()

@@ -21,26 +21,29 @@ export class ResendEmailConfirmationCodeUseCase
 
   async execute(command: ResendEmailCommand) {
     const { email } = command.dto;
-    const user = await this.usersRepository.findByEmail(email);
-    if (!user) {
+    const codeData = await this.usersRepository.selectByEmailJoinCode(email);
+    if (!codeData) {
       throw BadRequestDomainException.create(
         'user email doesnt exist',
         'email',
       );
     }
 
-    if (user.emailConfirmation.isConfirmed) {
+    if (codeData.isConfirmed) {
       throw BadRequestDomainException.create(
         'email already confirmed',
         'email',
       );
     }
 
-    user.emailConfirmation.expirationDate = add(new Date(), { hours: 24 });
-    user.emailConfirmation.code = uuidv4();
+    const resendCodeDto = {
+      userId: codeData.userId,
+      code: uuidv4(),
+      expirationDate: add(new Date(), { hours: 24 }),
+    };
 
-    this.mailService.sendCode(user.email, user.emailConfirmation.code);
+    await this.usersRepository.resendCode(resendCodeDto);
 
-    await this.usersRepository.save(user);
+    const result = this.mailService.sendCode(email, resendCodeDto.code);
   }
 }

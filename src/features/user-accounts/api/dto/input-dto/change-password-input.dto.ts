@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, Length } from 'class-validator';
+import { IsNotEmpty, IsString, IsUUID, Length } from 'class-validator';
 import { ChangePasswordDto } from '../../../dto/change-password.dto';
 import { Trim } from '../../../../../core/decorators/transform/trim';
 
@@ -11,5 +11,6 @@ export class ChangePasswordInputDto implements ChangePasswordDto {
   @Trim()
   @IsString()
   @IsNotEmpty()
+  @IsUUID()
   recoveryCode: string;
 }
