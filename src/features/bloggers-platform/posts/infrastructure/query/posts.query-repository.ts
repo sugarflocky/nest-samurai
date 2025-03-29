@@ -1,63 +1,111 @@
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Post, PostModelType } from '../../domain/post.entity';
+import { v4 as uuidv4 } from 'uuid';
 import { PostViewDto } from '../../api/dto/view-dto/post-view.dto';
 import { GetPostsQueryParams } from '../../api/dto/input-dto/get-posts-query-params.input-dto';
 import { PaginatedViewDto } from '../../../../../core/dto/base.paginated.view-dto';
 import { Types } from 'mongoose';
 import { PostsViewService } from '../../application/posts-view.service';
 import { NotFoundDomainException } from '../../../../../core/exceptions/domain-exceptions';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
+import { query } from 'express';
 
 @Injectable()
 export class PostsQueryRepository {
   constructor(
-    @InjectModel(Post.name) private PostModel: PostModelType,
+    @InjectDataSource() private dataSource: DataSource,
     private postsViewService: PostsViewService,
   ) {}
 
-  async getByIdOrNotFoundFail(
+  async selectByIdOrNotFound(
     id: string,
-    userId: string = new Types.ObjectId().toString(),
+    userId: string = uuidv4(),
   ): Promise<PostViewDto> {
-    const post = await this.PostModel.findOne({
-      _id: id,
-      deletedAt: null,
-    });
-
-    if (!post) {
+    const postQuery = await this.dataSource.query(
+      `
+    SELECT p.*, b."name" as "blogName"
+    FROM "Posts" p
+    LEFT JOIN "Blogs" b ON p."blogId" = b."id"
+    WHERE p."id"=$1 AND p."deletedAt" IS NULL
+    `,
+      [id],
+    );
+    if (!postQuery[0]) {
       throw NotFoundDomainException.create();
     }
 
-    return this.postsViewService.mapToView(post, userId);
+    return this.postsViewService.mapToView(postQuery[0], userId);
   }
 
-  async getAll(
+  async selectAllForBlog(
     query: GetPostsQueryParams,
-    blogId: string | null = null,
-    userId: string = new Types.ObjectId().toString(),
+    blogId: string,
+    userId: string,
   ): Promise<PaginatedViewDto<PostViewDto[]>> {
+    const offset = query.calculateSkip();
     const { sortBy, sortDirection, pageSize, pageNumber } = query;
-    let filter: any = {
-      deletedAt: null,
-    };
 
-    if (blogId) {
-      filter = {
-        deletedAt: null,
-        blogId: new Types.ObjectId(blogId),
-      };
-    }
+    const posts = await this.dataSource.query(
+      `
+    SELECT p.*, b."name" as "blogName"
+    FROM "Posts" p
+    LEFT JOIN "Blogs" b ON p."blogId" = b."id"
+    WHERE p."blogId"=$1 AND p."deletedAt" IS NULL
+    ORDER BY "${sortBy}" ${sortDirection}
+    LIMIT $2 OFFSET $3
+    `,
+      [blogId, pageSize, offset],
+    );
 
-    const items = await this.PostModel.find(filter)
-      .sort([[sortBy, sortDirection]])
-      .skip(query.calculateSkip())
-      .limit(pageSize)
-      .exec();
+    const countResult = await this.dataSource.query(
+      `
+    SELECT COUNT(*) FROM "Posts"
+    WHERE "deletedAt" IS NULL
+    `,
+    );
 
-    const totalCount = await this.PostModel.countDocuments(filter).exec();
+    const totalCount = +countResult[0].count;
 
     const data = {
-      items: await this.postsViewService.mapToViewList(items, userId),
+      items: await this.postsViewService.mapToViewList(posts, userId),
+      page: pageNumber,
+      size: pageSize,
+      totalCount: totalCount,
+    };
+
+    return PaginatedViewDto.mapToView(data);
+  }
+
+  async selectAll(
+    query: GetPostsQueryParams,
+    userId: string,
+  ): Promise<PaginatedViewDto<PostViewDto[]>> {
+    const offset = query.calculateSkip();
+    const { sortBy, sortDirection, pageSize, pageNumber } = query;
+
+    const posts = await this.dataSource.query(
+      `
+    SELECT p.*, b."name" as "blogName"
+    FROM "Posts" p
+    LEFT JOIN "Blogs" b ON p."blogId" = b."id"
+    WHERE p."deletedAt" IS NULL
+    ORDER BY "${sortBy}" ${sortDirection}
+    LIMIT $1 OFFSET $2
+    `,
+      [pageSize, offset],
+    );
+
+    const countResult = await this.dataSource.query(
+      `
+    SELECT COUNT(*) FROM "Posts"
+    WHERE "deletedAt" IS NULL
+    `,
+    );
+
+    const totalCount = +countResult[0].count;
+
+    const data = {
+      items: await this.postsViewService.mapToViewList(posts, userId),
       page: pageNumber,
       size: pageSize,
       totalCount: totalCount,

@@ -1,57 +1,65 @@
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Blog, BlogModelType } from '../../domain/blog.entity';
 import { BlogViewDto } from '../../api/dto/view-dto/blog-view.dto';
 import { GetBlogsQueryParams } from '../../api/dto/input-dto/get-blogs-query-params.input-dto';
 import { PaginatedViewDto } from '../../../../../core/dto/base.paginated.view-dto';
 import { NotFoundDomainException } from '../../../../../core/exceptions/domain-exceptions';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class BlogsQueryRepository {
-  constructor(
-    @InjectModel(Blog.name)
-    private BlogModel: BlogModelType,
-  ) {}
+  constructor(@InjectDataSource() private dataSource: DataSource) {}
 
-  async getByIdOrNotFoundFail(id: string): Promise<BlogViewDto> {
-    const blog = await this.BlogModel.findOne({
-      _id: id,
-      deletedAt: null,
-    });
+  async selectByIdOrNotFound(id: string): Promise<BlogViewDto> {
+    const blogQuery = await this.dataSource.query(
+      `
+    SELECT * FROM "Blogs"
+    WHERE "id"=$1 AND "deletedAt" IS NULL
+    `,
+      [id],
+    );
 
-    if (!blog) {
+    if (!blogQuery[0]) {
       throw NotFoundDomainException.create();
     }
 
-    return BlogViewDto.mapToView(blog);
+    return BlogViewDto.mapToView(blogQuery[0]);
   }
 
-  async getAll(
+  async selectAll(
     query: GetBlogsQueryParams,
   ): Promise<PaginatedViewDto<BlogViewDto[]>> {
-    const { sortBy, sortDirection, pageSize, pageNumber, searchNameTerm } =
-      query;
+    const offset = query.calculateSkip();
+    const { sortBy, sortDirection, pageSize, pageNumber } = query;
 
-    let filter: any = {
-      deletedAt: null,
-    };
+    const searchNameTerm = query.searchNameTerm ?? '';
 
-    if (searchNameTerm) {
-      filter = {
-        name: { $regex: searchNameTerm, $options: 'i' },
-        deletedAt: null,
-      };
-    }
+    const blogs = await this.dataSource.query(
+      `
+  SELECT * 
+  FROM "Blogs"
+  WHERE "deletedAt" IS NULL 
+  AND ("name" ILIKE $1)
+  ORDER BY "${sortBy}" ${sortDirection}
+  LIMIT $2 OFFSET $3
+`,
+      [`%${searchNameTerm}%`, pageSize, offset],
+    );
 
-    const items = await this.BlogModel.find(filter)
-      .sort([[sortBy, sortDirection]])
-      .skip(query.calculateSkip())
-      .limit(pageSize)
-      .exec();
-    const totalCount = await this.BlogModel.countDocuments(filter).exec();
+    const countResult = await this.dataSource.query(
+      `
+  SELECT COUNT(*)
+  FROM "Blogs" u
+  WHERE u."deletedAt" IS NULL 
+  AND (u."name" ILIKE $1)
+    `,
+      [`%${searchNameTerm}%`],
+    );
+
+    const totalCount = +countResult[0].count;
 
     const data = {
-      items: items.map((blog) => BlogViewDto.mapToView(blog)),
+      items: blogs.map((blog) => BlogViewDto.mapToView(blog)),
       page: pageNumber,
       size: pageSize,
       totalCount: totalCount,

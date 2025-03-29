@@ -1,11 +1,12 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { NotFoundDomainException } from '../../../../../core/exceptions/domain-exceptions';
 import { PostsRepository } from '../../infrastructure/posts.repository';
 import { BlogsRepository } from '../../../blogs/infrastructure/blogs-repository';
 import { UpdatePostInputDto } from '../../api/dto/input-dto/update-post-input.dto';
+import { UpdatePostDto } from '../../dto/update-post.dto';
 
 export class UpdatePostCommand {
   constructor(
+    public blogId: string,
     public postId: string,
     public dto: UpdatePostInputDto,
   ) {}
@@ -18,22 +19,15 @@ export class UpdatePostUseCase implements ICommandHandler<UpdatePostCommand> {
     private postsRepository: PostsRepository,
   ) {}
 
-  async execute(command: UpdatePostCommand): Promise<string> {
-    const { postId, dto } = command;
+  async execute(command: UpdatePostCommand): Promise<void> {
+    const { blogId, postId, dto } = command;
 
-    const blog = await this.blogsRepository.findById(dto.blogId);
-    if (!blog) {
-      throw NotFoundDomainException.create();
-    }
+    const blog = await this.blogsRepository.selectOrNotFoundFail(blogId);
 
-    const post = await this.postsRepository.findOrNotFoundFail(postId);
-
-    post.update({
+    const updateDto: UpdatePostDto = {
       ...dto,
-      blogName: blog.name,
-    });
-    await this.postsRepository.save(post);
+    };
 
-    return post._id.toString();
+    await this.postsRepository.update(blogId, postId, updateDto);
   }
 }

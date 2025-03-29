@@ -1,60 +1,41 @@
-import { PostDocument } from '../domain/post.entity';
+import { LikeStatus, PostDocument } from '../domain/post.entity';
 import { Injectable } from '@nestjs/common';
 import { LikesService } from '../../likes/application/likes.service';
 import { PostViewDto } from '../api/dto/view-dto/post-view.dto';
 import { UsersRepository } from '../../../user-accounts/infrastructure/users.repository';
+import { BlogsRepository } from '../../blogs/infrastructure/blogs-repository';
 
 @Injectable()
 export class PostsViewService {
   constructor(
     private readonly likesService: LikesService,
     private readonly usersRepository: UsersRepository,
+    private blogsRepository: BlogsRepository,
   ) {}
 
-  async mapToView(post: PostDocument, userId: string): Promise<PostViewDto> {
+  async mapToView(post, userId: string): Promise<PostViewDto> {
     const dto = new PostViewDto();
 
-    let lastLikes: any = [];
-    const likes = await this.likesService.getThreeLastLikes(
-      post._id.toString(),
-    );
+    const blog = await this.blogsRepository.selectById(post.blogId);
 
-    if (likes && likes.length > 0) {
-      lastLikes = await Promise.all(
-        likes.map(async (like) => {
-          const user = await this.usersRepository.findById(
-            like.userId.toString(),
-          );
-          return {
-            addedAt: like.updatedAt,
-            userId: like.userId.toString(),
-            login: user!.login,
-          };
-        }),
-      );
-    }
-
-    dto.id = post._id.toString();
+    dto.id = post.id;
     dto.title = post.title;
     dto.shortDescription = post.shortDescription;
     dto.content = post.content;
-    dto.blogId = post.blogId.toString();
+    dto.blogId = post.blogId;
     dto.blogName = post.blogName;
     dto.createdAt = post.createdAt;
     dto.extendedLikesInfo = {
-      likesCount: post.extendedLikesInfo.likesCount,
-      dislikesCount: post.extendedLikesInfo.dislikesCount,
-      myStatus: await this.likesService.getStatus(userId, post._id.toString()),
-      newestLikes: lastLikes,
+      likesCount: 0,
+      dislikesCount: 0,
+      myStatus: LikeStatus.None,
+      newestLikes: [],
     };
 
     return dto;
   }
 
-  async mapToViewList(
-    posts: PostDocument[],
-    userId: string,
-  ): Promise<PostViewDto[]> {
+  async mapToViewList(posts, userId: string): Promise<PostViewDto[]> {
     return Promise.all(posts.map((post) => this.mapToView(post, userId)));
   }
 }

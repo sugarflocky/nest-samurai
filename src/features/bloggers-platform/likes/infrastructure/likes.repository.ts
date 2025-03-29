@@ -60,4 +60,14 @@ export class LikesRepository {
   async save(like: LikeDocument): Promise<void> {
     await like.save();
   }
+
+  async selectById(id: string) {}
+
+  async selectOrNotFoundFail(id: string) {}
+
+  async create(dto) {}
+
+  async update(dto) {}
+
+  async delete(dto) {}
 }

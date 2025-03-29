@@ -1,17 +1,18 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { Types } from 'mongoose';
-import {
-  BadRequestDomainException,
-  NotFoundDomainException,
-} from '../../../../../core/exceptions/domain-exceptions';
+import { NotFoundDomainException } from '../../../../../core/exceptions/domain-exceptions';
 import { BlogsRepository } from '../../../blogs/infrastructure/blogs-repository';
 import { PostsRepository } from '../../infrastructure/posts.repository';
 import { InjectModel } from '@nestjs/mongoose';
 import { Post, PostModelType } from '../../domain/post.entity';
-import { CreatePostInputDto } from '../../api/dto/input-dto/post-input.dto';
+import { v4 as uuidv4 } from 'uuid';
+import { CreatePostDto } from '../../dto/create-post.dto';
+import { CreatePostForBlogInputDto } from '../../api/dto/input-dto/create-post-for-blog-input.dto';
 
 export class CreatePostCommand {
-  constructor(public dto: CreatePostInputDto) {}
+  constructor(
+    public blogId: string,
+    public dto: CreatePostForBlogInputDto,
+  ) {}
 }
 
 @CommandHandler(CreatePostCommand)
@@ -23,23 +24,25 @@ export class CreatePostUseCase implements ICommandHandler<CreatePostCommand> {
   ) {}
 
   async execute(command: CreatePostCommand): Promise<string> {
-    const { dto } = command;
+    const { blogId, dto } = command;
 
-    if (!Types.ObjectId.isValid(dto.blogId)) {
-      throw BadRequestDomainException.create('incorrect blogId', 'blogId');
-    }
-
-    const blog = await this.blogsRepository.findById(dto.blogId.toString());
+    const blog = await this.blogsRepository.selectById(blogId);
     if (!blog) {
       throw NotFoundDomainException.create();
     }
 
-    const post = this.PostModel.createInstance({
-      ...dto,
-      blogName: blog.name,
-    });
+    const createDto: CreatePostDto = {
+      id: uuidv4(),
+      title: dto.title,
+      shortDescription: dto.shortDescription,
+      content: dto.content,
+      blogId: blogId,
+      createdAt: new Date(),
+      deletedAt: null,
+    };
 
-    await this.postsRepository.save(post);
-    return post._id.toString();
+    await this.postsRepository.create(createDto);
+
+    return createDto.id;
   }
 }

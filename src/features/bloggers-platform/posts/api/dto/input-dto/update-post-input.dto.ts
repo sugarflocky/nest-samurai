@@ -1,6 +1,5 @@
 import { Trim } from '../../../../../../core/decorators/transform/trim';
-import { IsNotEmpty, IsString, Length, Validate } from 'class-validator';
-import { BlogExistsValidator } from '../../../../../../core/validators/blog-exists.validator';
+import { IsNotEmpty, IsString, Length } from 'class-validator';
 
 export class UpdatePostInputDto {
   @Trim()
@@ -18,9 +17,4 @@ export class UpdatePostInputDto {
   @IsString()
   @Length(1, 1000)
   content: string;
-  @Trim()
-  @IsNotEmpty()
-  @IsString()
-  @Validate(BlogExistsValidator)
-  blogId: string;
 }

@@ -1,6 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { User, UserModelType } from '../domain/user.entity';
 import { UsersRepository } from '../infrastructure/users.repository';
 import {
   BadRequestDomainException,
@@ -9,10 +7,7 @@ import {
 
 @Injectable()
 export class UsersService {
-  constructor(
-    @InjectModel(User.name) private UserModel: UserModelType,
-    private usersRepository: UsersRepository,
-  ) {}
+  constructor(private usersRepository: UsersRepository) {}
 
   async testUnique(login: string, email: string) {
     const loginTest = await this.usersRepository.selectByLogin(login);

@@ -24,7 +24,7 @@ export class UpdateCommentUseCase
     const { commentId, dto } = command;
 
     const comment = await this.commentsRepository.findOrNotFoundFail(commentId);
-    await this.usersRepository.findOrNotFoundFail(dto.userId);
+    await this.usersRepository.selectOrNotFoundFail(dto.userId);
 
     if (dto.userId !== comment.commentatorInfo.userId.toString()) {
       throw ForbiddenDomainException.create();

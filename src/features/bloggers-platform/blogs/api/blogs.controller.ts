@@ -18,7 +18,6 @@ import {
 import { BlogViewDto } from './dto/view-dto/blog-view.dto';
 import { GetBlogsQueryParams } from './dto/input-dto/get-blogs-query-params.input-dto';
 import { PaginatedViewDto } from '../../../../core/dto/base.paginated.view-dto';
-import { CreatePostInputDto } from '../../posts/api/dto/input-dto/post-input.dto';
 import { PostViewDto } from '../../posts/api/dto/view-dto/post-view.dto';
 import { PostsQueryRepository } from '../../posts/infrastructure/query/posts.query-repository';
 import { GetPostsQueryParams } from '../../posts/api/dto/input-dto/get-posts-query-params.input-dto';
@@ -32,8 +31,11 @@ import { CreateBlogCommand } from '../application/usecases/create-blog.use-case'
 import { UpdateBlogCommand } from '../application/usecases/update-blog.use-case';
 import { DeleteBlogCommand } from '../application/usecases/delete-blog.use-case';
 import { CreatePostCommand } from '../../posts/application/usecases/create-post.use-case';
+import { UpdatePostInputDto } from '../../posts/api/dto/input-dto/update-post-input.dto';
+import { UpdatePostCommand } from '../../posts/application/usecases/update-post.use-case';
+import { DeletePostCommand } from '../../posts/application/usecases/delete-post.use-case';
 
-@Controller('blogs')
+@Controller()
 export class BlogsController {
   constructor(
     private readonly blogsQueryRepository: BlogsQueryRepository,
@@ -41,65 +43,21 @@ export class BlogsController {
     private commandBus: CommandBus,
   ) {}
 
-  @Post()
-  @HttpCode(201)
-  @UseGuards(BasicAuthGuard)
-  async create(@Body() createDto: CreateBlogInputDto): Promise<BlogViewDto> {
-    const blogId: string = await this.commandBus.execute(
-      new CreateBlogCommand(createDto),
-    );
-    return this.blogsQueryRepository.getByIdOrNotFoundFail(blogId);
+  @Get('blogs/:id')
+  @HttpCode(200)
+  async getById(@Param('id') id: string): Promise<BlogViewDto> {
+    return this.blogsQueryRepository.selectByIdOrNotFound(id);
   }
 
-  @Get()
+  @Get('/blogs')
   @HttpCode(200)
   async getAll(
     @Query() query: GetBlogsQueryParams,
   ): Promise<PaginatedViewDto<BlogViewDto[]>> {
-    return this.blogsQueryRepository.getAll(query);
+    return this.blogsQueryRepository.selectAll(query);
   }
 
-  @Get(':id')
-  @HttpCode(200)
-  async getById(@Param('id') id: string): Promise<BlogViewDto> {
-    return this.blogsQueryRepository.getByIdOrNotFoundFail(id);
-  }
-
-  @Put(':id')
-  @HttpCode(204)
-  @UseGuards(BasicAuthGuard)
-  async update(@Param('id') id: string, @Body() updateDto: UpdateBlogInputDto) {
-    await this.commandBus.execute(new UpdateBlogCommand(id, updateDto));
-    return;
-  }
-
-  @Delete(':id')
-  @HttpCode(204)
-  @UseGuards(BasicAuthGuard)
-  async delete(@Param('id') id: string) {
-    await this.commandBus.execute(new DeleteBlogCommand(id));
-    return;
-  }
-
-  @Post(':id/posts')
-  @HttpCode(201)
-  @UseGuards(BasicAuthGuard)
-  async createPost(
-    @Param('id') id: string,
-    @Body() createDto: CreatePostForBlogInputDto,
-  ): Promise<PostViewDto> {
-    const dto: CreatePostInputDto = {
-      ...createDto,
-      blogId: id,
-    };
-
-    const postId: string = await this.commandBus.execute(
-      new CreatePostCommand(dto),
-    );
-    return this.postsQueryRepository.getByIdOrNotFoundFail(postId);
-  }
-
-  @Get(':id/posts')
+  @Get('blogs/:id/posts')
   @HttpCode(200)
   @UseGuards(JwtOptionalAuthGuard)
   async getPosts(
@@ -107,7 +65,91 @@ export class BlogsController {
     @Query() query: GetPostsQueryParams,
     @ExtractUserIfExistsFromRequest() user: UserContextDto,
   ): Promise<PaginatedViewDto<PostViewDto[]>> {
-    await this.blogsQueryRepository.getByIdOrNotFoundFail(id);
-    return this.postsQueryRepository.getAll(query, id, user?.id);
+    await this.blogsQueryRepository.selectByIdOrNotFound(id);
+    return this.postsQueryRepository.selectAllForBlog(query, id, user?.id);
+  }
+
+  @Get('sa/blogs')
+  @HttpCode(200)
+  @UseGuards(BasicAuthGuard)
+  async superGetAll(
+    @Query() query: GetBlogsQueryParams,
+  ): Promise<PaginatedViewDto<BlogViewDto[]>> {
+    return this.blogsQueryRepository.selectAll(query);
+  }
+
+  @Post('sa/blogs')
+  @HttpCode(201)
+  @UseGuards(BasicAuthGuard)
+  async create(@Body() createDto: CreateBlogInputDto): Promise<BlogViewDto> {
+    const blogId: string = await this.commandBus.execute(
+      new CreateBlogCommand(createDto),
+    );
+    return this.blogsQueryRepository.selectByIdOrNotFound(blogId);
+  }
+
+  @Put('sa/blogs/:id')
+  @HttpCode(204)
+  @UseGuards(BasicAuthGuard)
+  async update(@Param('id') id: string, @Body() updateDto: UpdateBlogInputDto) {
+    await this.commandBus.execute(new UpdateBlogCommand(id, updateDto));
+    return;
+  }
+
+  @Delete('sa/blogs/:id')
+  @HttpCode(204)
+  @UseGuards(BasicAuthGuard)
+  async delete(@Param('id') id: string) {
+    await this.commandBus.execute(new DeleteBlogCommand(id));
+    return;
+  }
+
+  @Post('sa/blogs/:blogId/posts')
+  @HttpCode(201)
+  @UseGuards(BasicAuthGuard)
+  async createPost(
+    @Param('blogId') blogId: string,
+    @Body() createDto: CreatePostForBlogInputDto,
+  ): Promise<PostViewDto> {
+    const postId: string = await this.commandBus.execute(
+      new CreatePostCommand(blogId, createDto),
+    );
+    return this.postsQueryRepository.selectByIdOrNotFound(postId);
+  }
+
+  @Get('sa/blogs/:id/posts')
+  @HttpCode(200)
+  @UseGuards(BasicAuthGuard, JwtOptionalAuthGuard)
+  async superGetPosts(
+    @Param('id') id: string,
+    @Query() query: GetPostsQueryParams,
+    @ExtractUserIfExistsFromRequest() user: UserContextDto,
+  ): Promise<PaginatedViewDto<PostViewDto[]>> {
+    await this.blogsQueryRepository.selectByIdOrNotFound(id);
+    return this.postsQueryRepository.selectAllForBlog(query, id, user?.id);
+  }
+
+  @Put('sa/blogs/:blogId/posts/:postId')
+  @HttpCode(204)
+  @UseGuards(BasicAuthGuard)
+  async updatePost(
+    @Param('blogId') blogId: string,
+    @Param('postId') postId: string,
+    @Body() updateDto: UpdatePostInputDto,
+  ): Promise<void> {
+    await this.commandBus.execute(
+      new UpdatePostCommand(blogId, postId, updateDto),
+    );
+  }
+
+  @Delete('sa/blogs/:blogId/posts/:postId')
+  @HttpCode(204)
+  @UseGuards(BasicAuthGuard)
+  async deletePost(
+    @Param('blogId') blogId: string,
+    @Param('postId') postId: string,
+  ) {
+    await this.commandBus.execute(new DeletePostCommand(blogId, postId));
+    return;
   }
 }

@@ -1,9 +1,8 @@
-import { CreateBlogDto } from '../../../dto/create-blog.dto';
 import { UpdateBlogDto } from '../../../dto/update-blog.dto';
 import { IsNotEmpty, IsString, Length, Matches } from 'class-validator';
 import { Trim } from '../../../../../../core/decorators/transform/trim';
 
-export class CreateBlogInputDto implements CreateBlogDto {
+export class CreateBlogInputDto {
   @Trim()
   @IsNotEmpty()
   @IsString()

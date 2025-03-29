@@ -25,7 +25,7 @@ export class CreateCommentUseCase
     const { dto } = command;
 
     await this.postsRepository.findOrNotFoundFail(dto.postId);
-    const user = await this.usersRepository.findOrNotFoundFail(dto.userId);
+    const user = await this.usersRepository.selectOrNotFoundFail(dto.userId);
 
     const comment = this.CommentModel.createInstance({
       content: dto.content,

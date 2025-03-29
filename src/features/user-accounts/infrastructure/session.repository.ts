@@ -9,55 +9,13 @@ import {
   NotFoundDomainException,
   UnauthorizedDomainException,
 } from '../../../core/exceptions/domain-exceptions';
-import { Types } from 'mongoose';
 import { CreateSessionDto } from '../dto/create-session.dto';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { UpdateSessionDto } from '../dto/update-session.dto';
 
 export class SessionRepository {
-  constructor(
-    @InjectModel(Session.name) private readonly SessionModel: SessionModelType,
-    @InjectDataSource() private dataSource: DataSource,
-  ) {}
-
-  /*  async findByDeviceId(id: string): Promise<SessionDocument | null> {
-    return this.SessionModel.findOne({
-      deviceId: new Types.ObjectId(id),
-      deletedAt: null,
-    });
-  }*/
-
-  /*  async findOrUnauthorized(id: string): Promise<SessionDocument> {
-    const session = await this.findByDeviceId(id);
-    if (!session) {
-      throw UnauthorizedDomainException.create();
-    }
-
-    return session;
-  }*/
-
-  /*  async deleteOther(userId: string, deviceId: string): Promise<void> {
-    await this.SessionModel.deleteMany({
-      userId: new Types.ObjectId(userId),
-      deviceId: { $ne: new Types.ObjectId(deviceId) },
-    });
-  }*/
-
-  /*  async deleteDevice(userId: string, deviceId: string): Promise<void> {
-    const device = await this.findByDeviceId(deviceId);
-    if (!device) {
-      throw NotFoundDomainException.create();
-    }
-
-    if (device.userId.toString() !== userId) {
-      throw ForbiddenDomainException.create();
-    }
-
-    await this.SessionModel.deleteOne({
-      deviceId: new Types.ObjectId(deviceId),
-    });
-  }*/
+  constructor(@InjectDataSource() private dataSource: DataSource) {}
 
   async create(dto: CreateSessionDto) {
     await this.dataSource.query(

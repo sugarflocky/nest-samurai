@@ -51,7 +51,7 @@ export class Post {
     post.shortDescription = dto.shortDescription;
     post.content = dto.content;
     post.blogId = new Types.ObjectId(dto.blogId);
-    post.blogName = dto.blogName;
+    post.blogName = '123';
 
     return post as PostDocument;
   }
@@ -63,12 +63,12 @@ export class Post {
     this.deletedAt = new Date();
   }
 
-  update(dto: UpdatePostDto) {
+  update(blogId, dto: UpdatePostDto) {
     this.title = dto.title;
     this.shortDescription = dto.shortDescription;
     this.content = dto.content;
-    this.blogId = new Types.ObjectId(dto.blogId);
-    this.blogName = dto.blogName;
+    this.blogId = new Types.ObjectId(blogId);
+    this.blogName = '123';
   }
 
   changeLikesCount(likesCount: number, dislikesCount: number) {

@@ -2,6 +2,7 @@ import {
   ValidationArguments,
   ValidatorConstraint,
   ValidatorConstraintInterface,
+  isUUID,
 } from 'class-validator';
 import { BlogsService } from '../../features/bloggers-platform/blogs/application/blogs.service';
 import { Injectable } from '@nestjs/common';
@@ -12,7 +13,7 @@ export class BlogExistsValidator implements ValidatorConstraintInterface {
   constructor(protected readonly blogsService: BlogsService) {}
 
   async validate(blogId: string): Promise<boolean> {
-    if (!blogId) return false;
+    if (!blogId || !isUUID(blogId)) return false;
     return await this.blogsService.exists(blogId);
   }
 

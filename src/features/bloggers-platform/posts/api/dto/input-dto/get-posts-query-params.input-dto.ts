@@ -5,6 +5,7 @@ import { Trim } from '../../../../../../core/decorators/transform/trim';
 export enum PostsSortBy {
   CreatedAt = 'createdAt',
   Title = 'title',
+  BlogName = 'blogName',
 }
 
 export class GetPostsQueryParams extends BaseSortablePaginationParams<PostsSortBy> {

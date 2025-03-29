@@ -31,4 +31,14 @@ export class CommentsRepository {
 
     return comment;
   }
+
+  async selectById(id: string) {}
+
+  async selectOrNotFoundFail(id: string) {}
+
+  async create(dto) {}
+
+  async update(dto) {}
+
+  async delete(dto) {}
 }
