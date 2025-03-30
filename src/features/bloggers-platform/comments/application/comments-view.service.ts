@@ -1,41 +1,33 @@
-import { LikesService } from '../../likes/application/likes.service';
-import { CommentDocument } from '../domain/comment.entity';
 import { CommentViewDto } from '../api/dto/view-dto/comment-view.dto';
 import { Injectable } from '@nestjs/common';
+import { LikesRepository } from '../../likes/infrastructure/likes.repository';
 
 @Injectable()
 export class CommentsViewService {
-  constructor(private readonly likesService: LikesService) {}
+  constructor(private likesRepository: LikesRepository) {}
 
-  async mapToView(
-    comment: CommentDocument,
-    userId: string,
-  ): Promise<CommentViewDto> {
+  async mapToView(comment, userId: string): Promise<CommentViewDto> {
     const dto = new CommentViewDto();
+    const status = await this.likesRepository.getMyStatus(comment.id, userId);
+    const likesInfo = await this.likesRepository.countLikes(comment.id);
 
-    dto.id = comment._id.toString();
+    dto.id = comment.id;
     dto.content = comment.content;
-    dto.commentatorInfo = {
-      userId: comment.commentatorInfo.userId.toString(),
-      userLogin: comment.commentatorInfo.userLogin,
-    };
     dto.createdAt = comment.createdAt;
+    dto.commentatorInfo = {
+      userId: comment.userId,
+      userLogin: comment.userLogin,
+    };
     dto.likesInfo = {
-      likesCount: comment.likesInfo.likesCount,
-      dislikesCount: comment.likesInfo.dislikesCount,
-      myStatus: await this.likesService.getStatus(
-        userId,
-        comment._id.toString(),
-      ),
+      likesCount: +likesInfo.likesCount,
+      dislikesCount: +likesInfo.dislikesCount,
+      myStatus: status,
     };
 
     return dto;
   }
 
-  async mapToViewList(
-    comments: CommentDocument[],
-    userId: string,
-  ): Promise<CommentViewDto[]> {
+  async mapToViewList(comments, userId: string): Promise<CommentViewDto[]> {
     return Promise.all(
       comments.map((comment) => this.mapToView(comment, userId)),
     );

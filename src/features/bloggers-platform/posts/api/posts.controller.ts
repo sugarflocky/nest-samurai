@@ -81,7 +81,7 @@ export class PostsController {
     @Query() query: GetCommentsQueryParams,
     @ExtractUserIfExistsFromRequest() user: UserContextDto,
   ) {
-    return this.commentsQueryRepository.getCommentsInPost(query, id, user?.id);
+    return this.commentsQueryRepository.selectAllInPost(query, id, user?.id);
   }
 
   @Post(':id/comments')
@@ -102,6 +102,6 @@ export class PostsController {
       new CreateCommentCommand(dto),
     );
 
-    return this.commentsQueryRepository.getByIdOrNotFoundFail(commentId);
+    return this.commentsQueryRepository.selectByIdOrNotFound(commentId);
   }
 }

@@ -1,5 +1,3 @@
-import { User, UserModelType } from '../../domain/user.entity';
-import { InjectModel } from '@nestjs/mongoose';
 import { Injectable } from '@nestjs/common';
 import { UserViewDto } from '../../api/dto/view-dto/user-view.dto';
 import { PaginatedViewDto } from '../../../../core/dto/base.paginated.view-dto';

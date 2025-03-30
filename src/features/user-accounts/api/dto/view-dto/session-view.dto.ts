@@ -1,5 +1,3 @@
-import { SessionDocument } from '../../../domain/session.entity';
-
 export class SessionViewDto {
   ip: string;
   title: string;

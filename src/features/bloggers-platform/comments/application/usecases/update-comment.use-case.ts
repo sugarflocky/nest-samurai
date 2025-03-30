@@ -6,7 +6,7 @@ import { UsersRepository } from '../../../../user-accounts/infrastructure/users.
 
 export class UpdateCommentCommand {
   constructor(
-    public commentId: string,
+    public id: string,
     public dto: UpdateCommentInServiceDto,
   ) {}
 }
@@ -20,18 +20,16 @@ export class UpdateCommentUseCase
     private usersRepository: UsersRepository,
   ) {}
 
-  async execute(command: UpdateCommentCommand): Promise<string> {
-    const { commentId, dto } = command;
+  async execute(command: UpdateCommentCommand): Promise<void> {
+    const { id, dto } = command;
 
-    const comment = await this.commentsRepository.findOrNotFoundFail(commentId);
+    const comment = await this.commentsRepository.selectOrNotFoundFail(id);
     await this.usersRepository.selectOrNotFoundFail(dto.userId);
 
-    if (dto.userId !== comment.commentatorInfo.userId.toString()) {
+    if (dto.userId !== comment.userId) {
       throw ForbiddenDomainException.create();
     }
 
-    comment.update(dto.content);
-    await this.commentsRepository.save(comment);
-    return comment._id.toString();
+    await this.commentsRepository.update(id, dto.content);
   }
 }

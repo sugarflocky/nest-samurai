@@ -1,9 +1,3 @@
-import { InjectModel } from '@nestjs/mongoose';
-import {
-  Session,
-  SessionDocument,
-  SessionModelType,
-} from '../domain/session.entity';
 import {
   ForbiddenDomainException,
   NotFoundDomainException,

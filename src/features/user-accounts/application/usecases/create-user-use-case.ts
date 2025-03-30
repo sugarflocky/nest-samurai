@@ -1,9 +1,7 @@
 import { CreateUserDto } from '../../dto/create-user.dto';
 import { CryptoService } from '../crypto.service';
-import { User, UserModelType } from '../../domain/user.entity';
 import { UsersService } from '../users.service';
 import { UsersRepository } from '../../infrastructure/users.repository';
-import { InjectModel } from '@nestjs/mongoose';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { v4 as uuidv4 } from 'uuid';
 import { CreateUserInputDto } from '../../api/dto/input-dto/user-input.dto';

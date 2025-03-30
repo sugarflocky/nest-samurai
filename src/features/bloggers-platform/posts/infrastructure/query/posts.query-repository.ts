@@ -3,12 +3,10 @@ import { v4 as uuidv4 } from 'uuid';
 import { PostViewDto } from '../../api/dto/view-dto/post-view.dto';
 import { GetPostsQueryParams } from '../../api/dto/input-dto/get-posts-query-params.input-dto';
 import { PaginatedViewDto } from '../../../../../core/dto/base.paginated.view-dto';
-import { Types } from 'mongoose';
 import { PostsViewService } from '../../application/posts-view.service';
 import { NotFoundDomainException } from '../../../../../core/exceptions/domain-exceptions';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
-import { query } from 'express';
 
 @Injectable()
 export class PostsQueryRepository {
@@ -60,8 +58,9 @@ export class PostsQueryRepository {
     const countResult = await this.dataSource.query(
       `
     SELECT COUNT(*) FROM "Posts"
-    WHERE "deletedAt" IS NULL
+    WHERE "blogId"=$1 AND "deletedAt" IS NULL
     `,
+      [blogId],
     );
 
     const totalCount = +countResult[0].count;

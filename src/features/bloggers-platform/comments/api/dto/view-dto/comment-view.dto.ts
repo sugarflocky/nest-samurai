@@ -1,4 +1,4 @@
-import { LikeStatus } from '../../../../posts/domain/post.entity';
+import { LikeStatus } from '../../../../likes/dto/like-status.enum';
 export class CommentViewDto {
   id: string;
   content: string;

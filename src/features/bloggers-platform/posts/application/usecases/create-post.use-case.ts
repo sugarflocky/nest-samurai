@@ -2,8 +2,6 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { NotFoundDomainException } from '../../../../../core/exceptions/domain-exceptions';
 import { BlogsRepository } from '../../../blogs/infrastructure/blogs-repository';
 import { PostsRepository } from '../../infrastructure/posts.repository';
-import { InjectModel } from '@nestjs/mongoose';
-import { Post, PostModelType } from '../../domain/post.entity';
 import { v4 as uuidv4 } from 'uuid';
 import { CreatePostDto } from '../../dto/create-post.dto';
 import { CreatePostForBlogInputDto } from '../../api/dto/input-dto/create-post-for-blog-input.dto';
@@ -20,7 +18,6 @@ export class CreatePostUseCase implements ICommandHandler<CreatePostCommand> {
   constructor(
     private blogsRepository: BlogsRepository,
     private postsRepository: PostsRepository,
-    @InjectModel(Post.name) private PostModel: PostModelType,
   ) {}
 
   async execute(command: CreatePostCommand): Promise<string> {

@@ -1,63 +1,77 @@
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Types } from 'mongoose';
-import { Comment, CommentModelType } from '../../domain/comment.entity';
 import { CommentViewDto } from '../../api/dto/view-dto/comment-view.dto';
 import { GetCommentsQueryParams } from '../../api/dto/input-dto/get-comments-query-params-input.dto';
 import { PaginatedViewDto } from '../../../../../core/dto/base.paginated.view-dto';
 import { CommentsViewService } from '../../application/comments-view.service';
 import { PostsRepository } from '../../../posts/infrastructure/posts.repository';
 import { NotFoundDomainException } from '../../../../../core/exceptions/domain-exceptions';
+import { v4 as uuidv4 } from 'uuid';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class CommentsQueryRepository {
   constructor(
-    @InjectModel(Comment.name) private CommentModel: CommentModelType,
     private commentsViewService: CommentsViewService,
     private postsRepository: PostsRepository,
+    @InjectDataSource() private dataSource: DataSource,
   ) {}
 
-  async getByIdOrNotFoundFail(
-    id: string,
-    userId: string = new Types.ObjectId().toString(),
+  async selectByIdOrNotFound(
+    commentId: string,
+    userId: string = uuidv4(),
   ): Promise<CommentViewDto> {
-    const comment = await this.CommentModel.findOne({
-      _id: id,
-      deletedAt: null,
-    });
+    const commentQuery = await this.dataSource.query(
+      `
+    SELECT c.*, u.login as "userLogin"
+    FROM "Comments" c
+    LEFT JOIN "Users" u ON c."userId" = u."id"
+    WHERE c."id"=$1 AND c."deletedAt" IS NULL
+    `,
+      [commentId],
+    );
 
-    if (!comment) {
+    if (!commentQuery[0]) {
       throw NotFoundDomainException.create();
     }
 
-    return this.commentsViewService.mapToView(comment, userId);
+    return this.commentsViewService.mapToView(commentQuery[0], userId);
   }
 
-  async getCommentsInPost(
+  async selectAllInPost(
     query: GetCommentsQueryParams,
     postId: string,
-    userId: string = new Types.ObjectId().toString(),
+    userId: string = uuidv4(),
   ): Promise<PaginatedViewDto<CommentViewDto[]>> {
+    const offset = query.calculateSkip();
     const { sortBy, sortDirection, pageSize, pageNumber } = query;
-    const filter: any = {
-      postId: new Types.ObjectId(postId),
-      deletedAt: null,
-    };
 
-    await this.postsRepository.findOrNotFoundFail(postId);
+    await this.postsRepository.selectOrNotFoundFail(postId);
 
-    const items = await this.CommentModel.find(filter)
-      .sort([[sortBy, sortDirection]])
-      .skip(query.calculateSkip())
-      .limit(pageSize)
-      .exec();
+    const comments = await this.dataSource.query(
+      `
+    SELECT c.*, u."login" as "userLogin"
+    FROM "Comments" c
+    LEFT JOIN "Users" u ON c."userId" = u."id"
+    WHERE c."postId"=$1 AND c."deletedAt" IS NULL
+    ORDER BY "${sortBy}" ${sortDirection}
+    LIMIT $2 OFFSET $3
+    `,
+      [postId, pageSize, offset],
+    );
 
-    const totalCount = await this.CommentModel.countDocuments(filter).exec();
+    const countResult = await this.dataSource.query(
+      `
+    SELECT COUNT(*) FROM "Comments"
+    WHERE "postId"=$1 AND "deletedAt" IS NULL
+    `,
+      [postId],
+    );
 
-    await this.commentsViewService.mapToViewList(items, userId);
+    const totalCount = +countResult[0].count;
 
     const data = {
-      items: await this.commentsViewService.mapToViewList(items, userId),
+      items: await this.commentsViewService.mapToViewList(comments, userId),
       page: pageNumber,
       size: pageSize,
       totalCount: totalCount,

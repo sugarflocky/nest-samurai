@@ -22,14 +22,15 @@ export class DeleteCommentUseCase
   async execute(command: DeleteCommentCommand): Promise<void> {
     const { commentId, userId } = command;
 
-    const comment = await this.commentsRepository.findOrNotFoundFail(commentId);
+    await this.usersRepository.selectOrNotFoundFail(userId);
 
-    if (userId !== comment.commentatorInfo.userId.toString()) {
+    const comment =
+      await this.commentsRepository.selectOrNotFoundFail(commentId);
+
+    if (userId !== comment.userId) {
       throw ForbiddenDomainException.create();
     }
 
-    comment.makeDeleted();
-
-    await this.commentsRepository.save(comment);
+    await this.commentsRepository.delete(commentId);
   }
 }

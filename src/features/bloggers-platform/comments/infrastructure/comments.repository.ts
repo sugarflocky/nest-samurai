@@ -1,30 +1,25 @@
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import {
-  Comment,
-  CommentDocument,
-  CommentModelType,
-} from '../domain/comment.entity';
 import { NotFoundDomainException } from '../../../../core/exceptions/domain-exceptions';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
+import { CreateCommentDto } from '../dto/create-comment.dto';
 @Injectable()
 export class CommentsRepository {
-  constructor(
-    @InjectModel(Comment.name) private CommentModel: CommentModelType,
-  ) {}
+  constructor(@InjectDataSource() private dataSource: DataSource) {}
 
-  async findById(id: string): Promise<CommentDocument | null> {
-    return this.CommentModel.findOne({
-      _id: id,
-      deletedAt: null,
-    });
+  async selectById(id: string) {
+    const commentQuery = await this.dataSource.query(
+      `SELECT * FROM "Comments" 
+       WHERE "id"=$1 AND "deletedAt" IS NULL
+`,
+      [id],
+    );
+
+    return commentQuery[0];
   }
 
-  async save(comment: CommentDocument): Promise<void> {
-    await comment.save();
-  }
-
-  async findOrNotFoundFail(id: string): Promise<CommentDocument> {
-    const comment = await this.findById(id);
+  async selectOrNotFoundFail(id: string) {
+    const comment = await this.selectById(id);
     if (!comment) {
       throw NotFoundDomainException.create();
     }
@@ -32,13 +27,43 @@ export class CommentsRepository {
     return comment;
   }
 
-  async selectById(id: string) {}
+  async create(dto: CreateCommentDto) {
+    const commentQuery = await this.dataSource.query(
+      `INSERT INTO "Comments"(
+      "id", "content", "postId", "userId", "createdAt", "deletedAt")
+    VALUES ($1, $2, $3, $4, $5, $6)`,
+      [
+        dto.id,
+        dto.content,
+        dto.postId,
+        dto.userId,
+        dto.createdAt,
+        dto.deletedAt,
+      ],
+    );
+  }
 
-  async selectOrNotFoundFail(id: string) {}
+  async update(id: string, content: string) {
+    await this.selectOrNotFoundFail(id);
 
-  async create(dto) {}
+    const commentQuery = await this.dataSource.query(
+      `
+      UPDATE "Comments"
+      SET "content"=$2
+      WHERE "id"=$1`,
+      [id, content],
+    );
+  }
 
-  async update(dto) {}
+  async delete(id: string) {
+    await this.selectOrNotFoundFail(id);
 
-  async delete(dto) {}
+    const commentQuery = await this.dataSource.query(
+      `
+      UPDATE "Comments"
+      SET "deletedAt"=$2
+      WHERE "id"=$1`,
+      [id, new Date()],
+    );
+  }
 }

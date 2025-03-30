@@ -36,7 +36,7 @@ export class CommentsController {
     @Param('id') id: string,
     @ExtractUserIfExistsFromRequest() user: UserContextDto,
   ): Promise<CommentViewDto> {
-    return this.commentsQueryRepository.getByIdOrNotFoundFail(id, user?.id);
+    return this.commentsQueryRepository.selectByIdOrNotFound(id, user?.id);
   }
 
   @Put(':id')

@@ -1,10 +1,7 @@
-import { InjectModel } from '@nestjs/mongoose';
-import { User, UserDocument, UserModelType } from '../domain/user.entity';
 import { Injectable } from '@nestjs/common';
 import {
   BadRequestDomainException,
   NotFoundDomainException,
-  UnauthorizedDomainException,
 } from '../../../core/exceptions/domain-exceptions';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { InjectDataSource } from '@nestjs/typeorm';

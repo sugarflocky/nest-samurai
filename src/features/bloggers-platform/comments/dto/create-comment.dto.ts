@@ -1,8 +1,10 @@
 export class CreateCommentDto {
+  id: string;
   content: string;
   postId: string;
   userId: string;
-  userLogin: string;
+  createdAt: Date;
+  deletedAt: Date | null;
 }
 
 export class CreateCommentInServiceDto {

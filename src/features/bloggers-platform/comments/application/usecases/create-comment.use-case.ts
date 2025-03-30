@@ -3,8 +3,7 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { PostsRepository } from '../../../posts/infrastructure/posts.repository';
 import { UsersRepository } from '../../../../user-accounts/infrastructure/users.repository';
 import { CommentsRepository } from '../../infrastructure/comments.repository';
-import { InjectModel } from '@nestjs/mongoose';
-import { Comment, CommentModelType } from '../../domain/comment.entity';
+import { v4 as uuidv4 } from 'uuid';
 
 export class CreateCommentCommand {
   constructor(public dto: CreateCommentInServiceDto) {}
@@ -18,23 +17,25 @@ export class CreateCommentUseCase
     private postsRepository: PostsRepository,
     private usersRepository: UsersRepository,
     private commentsRepository: CommentsRepository,
-    @InjectModel(Comment.name) private CommentModel: CommentModelType,
   ) {}
 
   async execute(command: CreateCommentCommand): Promise<string> {
     const { dto } = command;
 
-    await this.postsRepository.findOrNotFoundFail(dto.postId);
-    const user = await this.usersRepository.selectOrNotFoundFail(dto.userId);
+    await this.postsRepository.selectOrNotFoundFail(dto.postId);
+    await this.usersRepository.selectOrNotFoundFail(dto.userId);
 
-    const comment = this.CommentModel.createInstance({
+    const createDto = {
+      id: uuidv4(),
       content: dto.content,
       postId: dto.postId,
       userId: dto.userId,
-      userLogin: user.login,
-    });
+      createdAt: new Date(),
+      deletedAt: null,
+    };
 
-    await this.commentsRepository.save(comment);
-    return comment._id.toString();
+    await this.commentsRepository.create(createDto);
+
+    return createDto.id;
   }
 }

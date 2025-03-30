@@ -1,4 +1,4 @@
-import { LikeStatus } from '../../../domain/post.entity';
+import { LikeStatus } from '../../../../likes/dto/like-status.enum';
 
 type NewestLikes = {
   addedAt: Date;
